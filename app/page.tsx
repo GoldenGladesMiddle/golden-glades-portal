@@ -9,7 +9,7 @@ export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col justify-between">
+    <div className="min-h-screen bg-white font-sans text-slate-800 flex flex-col justify-between">
       <div>
         {/* Top Utility Bar - #284b85 */}
         <div className="bg-[#284b85] text-slate-200 text-xs py-1.5 px-4 md:px-8 flex justify-between items-center border-b border-blue-900/40">
@@ -82,7 +82,7 @@ export default function HomePage() {
         </header>
 
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-[#284b85] to-[#1d3863] text-white py-20 px-4 md:px-8 border-b-4 border-amber-400">
+        <section className="bg-gradient-to-r from-[#284b85] to-[#1d3863] text-white py-16 px-4 md:px-8 border-b-4 border-amber-400">
           <div className="max-w-4xl mx-auto text-center space-y-6">
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
               GOLDEN GLADES MIDDLE
@@ -103,6 +103,39 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* Main Information Section */}
+        <main className="max-w-4xl mx-auto px-6 py-12 md:py-16 space-y-12 text-slate-800">
+          {/* Motto */}
+          <section className="space-y-3">
+            <h2 className="text-xl md:text-2xl font-bold text-slate-900">
+              Motto
+            </h2>
+            <p className="text-slate-700 text-base md:text-lg">
+              &quot;Where Future Leaders Strive&quot;
+            </p>
+          </section>
+
+          {/* Mission Statement */}
+          <section className="space-y-3">
+            <h2 className="text-xl md:text-2xl font-bold text-slate-900">
+              Mission Statement
+            </h2>
+            <p className="text-slate-700 text-base md:text-lg leading-relaxed">
+              Our mission is to cultivate a supportive and inclusive learning environment where every student in every grade is empowered to academic success and personal growth. Through a diverse curriculum handpicked by our teachers and reviewed by our admin, we strive to ignite curiosity, foster creativity, and prepare our students to become thoughtful, responsible, and engaged individuals in this world.
+            </p>
+          </section>
+
+          {/* Vision Statement */}
+          <section className="space-y-3">
+            <h2 className="text-xl md:text-2xl font-bold text-slate-900">
+              Vision Statement
+            </h2>
+            <p className="text-slate-700 text-base md:text-lg leading-relaxed">
+              Our vision is to be a middle school where innovation and tradition meet, creating an environment that inspires students to reach their full potential. We aim to be a beacon of excellence in our community, known for nurturing resilient leaders who lead with integrity, embrace diversity, and possess the skills needed to thrive in their future.
+            </p>
+          </section>
+        </main>
       </div>
 
       {/* Footer Area */}

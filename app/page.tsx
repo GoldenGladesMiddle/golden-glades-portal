@@ -46,7 +46,7 @@ export default function Home() {
     ],
     staff: [
       { title: 'Teacher Portal', icon: UserCheck, desc: 'Submit grades, manage attendance, and rosters.' },
-      { title: 'Staff Directory', icon: BookOpen, desc: 'Contact administration and department heads.' },
+      { title: 'Staff Directory', icon: BookOpen, desc: 'Access administration contact details and rosters.' },
       { title: 'District Calendar', icon: Calendar, desc: 'Professional development & school events.' },
       { title: 'Staff Resources', icon: Bell, desc: 'Curriculum guides and HR documents.' },
     ],
@@ -91,7 +91,7 @@ export default function Home() {
 
       {/* M-DCPS Style Main Navigation Bar */}
       <header className="bg-[#284b85] text-white shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 flex items-center justify-between">
           
           {/* Mobile Menu Button */}
           <button 
@@ -108,15 +108,16 @@ export default function Home() {
             <a href="#" className="hover:text-amber-300 transition">Schools</a>
           </nav>
 
-          {/* Centered School Logo */}
-          <div className="flex items-center justify-center">
-            <a href="#" className="transform hover:scale-105 transition">
+          {/* Centered School Logo (Increased Size) */}
+          <div className="flex items-center justify-center py-1">
+            <a href="#" className="transform hover:scale-105 transition block">
               <Image 
                 src="/logo.png" 
                 alt="Golden Glades Middle Logo" 
-                width={48} 
-                height={48} 
-                className="w-12 h-12 object-contain"
+                width={80} 
+                height={80} 
+                className="w-20 h-20 object-contain drop-shadow-md"
+                priority
               />
             </a>
           </div>

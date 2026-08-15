@@ -1,214 +1,162 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { 
+  ShieldAlert, 
   BookOpen, 
   FileText, 
-  LogOut, 
-  Search, 
-  Users, 
-  HeartHandshake, 
-  MessageCircle,
-  ShieldAlert
+  Search,
+  ChevronDown
 } from 'lucide-react';
 
-interface UserData {
-  displayName: string;
-  username: string;
-  userId: string | number;
-  avatarUrl: string;
-}
-
 export default function StudentPortalPage() {
-  const router = useRouter();
-  
-  // Sample user state - populate this with your Roblox OAuth/Session state
-  const [user, setUser] = useState<UserData>({
-    displayName: 'Guest Student',
-    username: 'GuestUser',
-    userId: '000000',
-    avatarUrl: 'https://tr.rbxcdn.com/30bf54089e0839e53b6f2c3d5262ef00/150/150/AvatarHeadshot/Png' // Default Roblox fallback
-  });
-
-  // Fetch Roblox user details & avatar dynamically if logged in
-  useEffect(() => {
-    async function loadUserData() {
-      try {
-        // Replace with your actual user session or state fetch
-        const res = await fetch('/api/user/me');
-        if (res.ok) {
-          const data = await res.json();
-          setUser({
-            displayName: data.displayName || data.username,
-            username: data.username,
-            userId: data.userId,
-            // Fetch Roblox avatar headshot
-            avatarUrl: `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${data.userId}&size=150x150&format=Png&isCircular=true`
-          });
-        }
-      } catch (err) {
-        console.error('Failed to load user profile:', err);
-      }
-    }
-    loadUserData();
-  }, []);
-
-  // Logout handler
-  const handleSignOut = useCallback(() => {
-    // Add logic to clear user tokens/session here
-    router.push('/');
-  }, [router]);
-
-  // 20-minute inactivity logout logic
-  useEffect(() => {
-    const INACTIVITY_LIMIT = 20 * 60 * 1000; // 20 minutes in milliseconds
-    let timeoutId: NodeJS.Timeout;
-
-    const resetTimer = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        alert('You have been logged out due to 20 minutes of inactivity.');
-        handleSignOut();
-      }, INACTIVITY_LIMIT);
-    };
-
-    // Event listeners to detect user activity
-    const activityEvents = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
-    activityEvents.forEach((event) => window.addEventListener(event, resetTimer));
-
-    resetTimer(); // Initialize timer on mount
-
-    return () => {
-      clearTimeout(timeoutId);
-      activityEvents.forEach((event) => window.removeEventListener(event, resetTimer));
-    };
-  }, [handleSignOut]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   return (
-    <div className="min-h-screen bg-[#f7f5f0] flex flex-col md:flex-row font-sans">
-      {/* Left Sidebar */}
-      <aside className="w-full md:w-80 bg-[#0a3560] text-white flex flex-col justify-between p-6 shrink-0">
-        <div className="space-y-6">
-          {/* User Profile Card */}
-          <div className="flex items-start space-x-4 border-b border-blue-900/60 pb-6">
-            <div className="w-16 h-16 rounded-full overflow-hidden bg-blue-900 border-2 border-white/20 shrink-0 relative">
-              <Image 
-                src={user.avatarUrl} 
-                alt={user.displayName}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </div>
-            <div className="space-y-1 overflow-hidden">
-              <h2 className="text-base font-bold uppercase tracking-wide truncate text-white">
-                {user.displayName}
-              </h2>
-              <p className="text-xs text-blue-200 truncate">@{user.username}</p>
-              <p className="text-xs text-blue-300 font-mono">User ID: {user.userId}</p>
-            </div>
+    <div className="min-h-screen bg-[#f8f6f0] flex flex-col font-sans">
+      {/* 1. Top Utility Bar (#284b85) */}
+      <div className="bg-[#284b85] text-slate-200 text-xs py-1.5 px-4 md:px-8 flex justify-between items-center border-b border-blue-900/40 z-50">
+        <div className="flex items-center space-x-4">
+          <span className="flex items-center gap-1 text-amber-400 font-semibold">
+            <ShieldAlert className="w-3.5 h-3.5" /> Emergency Alerts: Active
+          </span>
+          <span className="hidden sm:inline text-slate-400">|</span>
+          <span className="hidden sm:inline">School ID#: 8284465</span>
+        </div>
+      </div>
+
+      {/* 2. Sub-Navigation Black Bar */}
+      <div className="bg-black text-white text-xs font-semibold py-2.5 px-4 md:px-8 border-b border-amber-400 z-40">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-y-2 text-center">
+          <div className="flex items-center space-x-6">
+            <a href="#" className="hover:text-amber-400 transition">Admissions</a>
+            <a href="#" className="hover:text-amber-400 transition">Resources</a>
+            <a href="#" className="hover:text-amber-400 transition">Schools</a>
           </div>
 
-          {/* Navigation Links */}
-          <nav className="space-y-2 text-sm font-semibold">
-            <Link 
-              href="/StudentPortal/gradebook" 
-              className="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-blue-900/50 transition text-slate-100"
-            >
-              <BookOpen className="w-5 h-5 text-amber-400" />
-              <span>Gradebook</span>
-            </Link>
-
-            <Link 
-              href="/StudentPortal/report-card" 
-              className="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-blue-900/50 transition text-slate-100"
-            >
-              <FileText className="w-5 h-5 text-amber-400" />
-              <span>Report Card</span>
-            </Link>
-          </nav>
+          <div className="flex items-center space-x-6">
+            <a href="#" className="hover:text-amber-400 transition">News</a>
+            <Link href="/portal" className="text-amber-400 font-bold transition">Portal</Link>
+            <div className="flex items-center space-x-1 cursor-pointer hover:text-amber-400 transition text-xs font-semibold">
+              <span>English</span>
+              <ChevronDown className="w-3.5 h-3.5" />
+            </div>
+          </div>
         </div>
+      </div>
 
-        {/* Bottom Sign Out */}
-        <div className="pt-6 border-t border-blue-900/60">
-          <button 
-            onClick={handleSignOut}
-            className="flex items-center space-x-3 w-full text-left px-3 py-2.5 rounded-lg hover:bg-red-950/40 text-slate-200 hover:text-red-300 transition text-sm font-semibold"
-          >
-            <LogOut className="w-5 h-5 text-red-400" />
-            <span>Sign Out</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col">
-        {/* Banner */}
-        <header className="bg-gradient-to-r from-red-700 via-red-600 to-red-800 text-white py-6 px-8 shadow-md">
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-center md:text-left">
-            Welcome to Golden Glades Middle Student Portal
-          </h1>
-        </header>
-
-        {/* Portal Dashboard Grid */}
-        <div className="p-6 md:p-10 space-y-8 flex-1 max-w-6xl mx-auto w-full">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Announcement Card 1 */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row">
-              <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900">Student Government</h3>
-                  <p className="text-slate-600 text-sm mt-2 leading-relaxed">
-                    Get Involved! DSGA provides information on how students can participate, contact their school's SGA sponsor, and voice their concerns.
-                  </p>
-                </div>
-                <button className="mt-4 inline-flex items-center justify-center border border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold text-xs px-4 py-2 rounded-md transition w-fit">
-                  Learn More
-                </button>
+      {/* Main Portal Workspace */}
+      <div className="flex-1 flex flex-col md:flex-row">
+        {/* Left Sidebar */}
+        <aside className="w-full md:w-64 bg-[#0a3161] text-white flex flex-col justify-between p-6 shrink-0">
+          <div className="space-y-8">
+            {/* User Profile */}
+            <div className="flex items-center space-x-3 pb-6 border-b border-blue-800/60">
+              <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm overflow-hidden text-center leading-tight p-1">
+                GUEST
+              </div>
+              <div>
+                <h3 className="font-bold text-sm tracking-wide">GUEST STUDENT</h3>
+                <p className="text-xs text-blue-300">@GuestUser</p>
+                <p className="text-[10px] text-blue-300/80 font-mono mt-0.5">
+                  User ID: <span className="text-cyan-400 font-semibold">000000</span>
+                </p>
               </div>
             </div>
 
-            {/* Announcement Card 2 */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col md:flex-row">
-              <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
+            {/* Navigation Links */}
+            <nav className="space-y-4 text-sm font-semibold">
+              <Link 
+                href="/portal/gradebook" 
+                className="flex items-center space-x-3 text-white hover:text-amber-300 transition py-1"
+              >
+                <BookOpen className="w-4 h-4 text-amber-400" />
+                <span>Gradebook</span>
+              </Link>
+
+              <Link 
+                href="/portal/report-card" 
+                className="flex items-center space-x-3 text-white hover:text-amber-300 transition py-1"
+              >
+                <FileText className="w-4 h-4 text-amber-400" />
+                <span>Report Card</span>
+              </Link>
+            </nav>
+          </div>
+        </aside>
+
+        {/* Right Main Content Panel */}
+        <main className="flex-1 flex flex-col">
+          {/* Centered Welcome Header Banner */}
+          <div className="bg-[#b90000] text-white py-4 px-6 text-center shadow-inner">
+            <h1 className="text-xl md:text-2xl font-extrabold tracking-wide">
+              Welcome to Golden Glades Middle Student Portal
+            </h1>
+          </div>
+
+          {/* Main Dashboard Content */}
+          <div className="p-6 md:p-12 space-y-12 max-w-6xl mx-auto w-full">
+            {/* Support & SGA Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Student Government Card */}
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200/80 space-y-4">
+                <h2 className="text-lg font-bold text-slate-900">
+                  Student Government
+                </h2>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Get Involved! DSGA provides information on how students can participate, contact their school&apos;s SGA sponsor, and voice their concerns.
+                </p>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">Child Abuse Hotline & Support</h3>
-                  <p className="text-slate-600 text-sm mt-2 leading-relaxed">
-                    To report abuse or seek support, please contact the helpline below: Telephone: 800-962-2873.
-                  </p>
+                  <button className="px-4 py-1.5 text-xs font-semibold text-blue-600 border border-blue-600 rounded hover:bg-blue-50 transition">
+                    Learn More
+                  </button>
                 </div>
-                <button className="mt-4 inline-flex items-center justify-center border border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold text-xs px-4 py-2 rounded-md transition w-fit">
-                  Report Abuse
-                </button>
+              </div>
+
+              {/* Child Abuse Hotline Card */}
+              <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200/80 space-y-4">
+                <h2 className="text-lg font-bold text-slate-900">
+                  Child Abuse Hotline &amp; Support
+                </h2>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  To report abuse or seek support, please contact the helpline below: <br />
+                  <span className="font-semibold text-slate-800">Telephone: 800-962-2873</span>
+                </p>
+                <div>
+                  <button className="px-4 py-1.5 text-xs font-semibold text-blue-600 border border-blue-600 rounded hover:bg-blue-50 transition">
+                    Report Abuse
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Search Section */}
+            <div className="text-center space-y-4 max-w-xl mx-auto pt-6">
+              <div className="space-y-1">
+                <h2 className="text-2xl font-bold text-slate-900">
+                  Stay Connected. Stay Ahead.
+                </h2>
+                <p className="text-xs text-slate-500">
+                  Find all the resources you need for the school year
+                </p>
+              </div>
+
+              <div className="relative">
+                <Search className="absolute left-4 top-3 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search student Apps..."
+                  className="w-full bg-white border border-slate-300 rounded-lg py-2.5 pl-11 pr-4 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm"
+                />
               </div>
             </div>
           </div>
-
-          {/* Search & Resources Section */}
-          <div className="text-center space-y-4 pt-6">
-            <h2 className="text-2xl font-bold text-slate-800">Stay Connected. Stay Ahead.</h2>
-            <p className="text-slate-600 text-sm">Find all the resources you need for the school year</p>
-            <div className="max-w-xl mx-auto relative">
-              <Search className="w-5 h-5 absolute left-3.5 top-3 text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Search student Apps..."
-                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Floating Chat Widget */}
-        <div className="fixed bottom-6 right-6">
-          <button className="bg-cyan-500 hover:bg-cyan-600 text-white p-3.5 rounded-full shadow-lg flex items-center justify-center transition">
-            <MessageCircle className="w-7 h-7" />
-          </button>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

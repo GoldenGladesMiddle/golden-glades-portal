@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShieldAlert, User, Search, Menu, X, ChevronDown, ExternalLink } from 'lucide-react';
+import { ShieldAlert, Search, Menu, X, ChevronDown, ExternalLink } from 'lucide-react';
 
 export default function CareersPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -22,11 +22,6 @@ export default function CareersPage() {
             </span>
             <span className="hidden sm:inline text-slate-400">|</span>
             <span className="hidden sm:inline">School ID#: 8284465</span>
-          </div>
-          <div className="flex items-center space-x-4">
-            <a href="/api/auth/roblox" className="text-amber-400 font-semibold hover:underline flex items-center gap-1">
-              <User className="w-3.5 h-3.5" /> Log In
-            </a>
           </div>
         </div>
 

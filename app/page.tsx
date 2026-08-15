@@ -73,7 +73,7 @@ export default function Home() {
             <ShieldAlert className="w-3.5 h-3.5" /> Emergency Alerts: Active
           </span>
           <span className="hidden sm:inline text-slate-400">|</span>
-          <span className="hidden sm:inline">District ID: #8284465</span>
+          <span className="hidden sm:inline">School ID#: 8284465</span>
         </div>
         <div className="flex items-center space-x-4">
           {username && (

@@ -12,7 +12,9 @@ import {
   X, 
   ChevronRight, 
   User,
-  Settings
+  Settings,
+  Globe,
+  ChevronDown
 } from 'lucide-react';
 
 export default function Home() {
@@ -65,7 +67,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col">
       {/* Top Utility Bar */}
-      <div className="bg-[#001a38] text-slate-200 text-xs py-2 px-4 md:px-8 flex justify-between items-center border-b border-slate-700">
+      <div className="bg-[#1a3861] text-slate-200 text-xs py-1.5 px-4 md:px-8 flex justify-between items-center border-b border-blue-900/40">
         <div className="flex items-center space-x-4">
           <span className="flex items-center gap-1 text-amber-400 font-semibold">
             <ShieldAlert className="w-3.5 h-3.5" /> Emergency Alerts: Active
@@ -74,64 +76,82 @@ export default function Home() {
           <span className="hidden sm:inline">District ID: #8284465</span>
         </div>
         <div className="flex items-center space-x-4">
-          <button className="hover:underline">Translate</button>
-          <button className="hover:underline">Accessibility</button>
+          {username ? (
+            <div className="flex items-center space-x-2 text-amber-300 font-medium">
+              <User className="w-3.5 h-3.5" />
+              <span>{username} ({role.toUpperCase()})</span>
+            </div>
+          ) : (
+            <a href="/api/auth/roblox" className="text-amber-400 font-semibold hover:underline">
+              Log In with Roblox
+            </a>
+          )}
         </div>
       </div>
 
-      {/* Main Navigation Header */}
-      <header className="bg-[#002855] text-white shadow-lg sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center space-x-3">
-            <div className="bg-amber-400 text-[#002855] font-black text-xl h-10 w-10 rounded-lg flex items-center justify-center shadow">
-              GG
-            </div>
-            <div>
-              <h1 className="text-lg md:text-xl font-bold tracking-wide leading-none">GOLDEN GLADES MIDDLE</h1>
-              <p className="text-xs text-slate-300 mt-0.5">School District Portal</p>
-            </div>
-          </div>
-
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-            <a href="#" className="hover:text-amber-400 transition">Portals</a>
-            <a href="#" className="hover:text-amber-400 transition">Academics</a>
-            <a href="#" className="hover:text-amber-400 transition">Directory</a>
-            
-            {username ? (
-              <div className="flex items-center space-x-3 bg-blue-900/60 px-3 py-1.5 rounded-lg border border-blue-700">
-                <User className="w-4 h-4 text-amber-400" />
-                <span className="font-semibold text-xs">{username} ({role.toUpperCase()})</span>
-              </div>
-            ) : (
-              <a 
-                href="/api/auth/roblox" 
-                className="bg-amber-500 hover:bg-amber-600 text-[#002855] font-bold px-4 py-2 rounded-md transition shadow flex items-center gap-1"
-              >
-                Log In with Roblox
-              </a>
-            )}
-          </nav>
-
-          {/* Mobile Menu Toggle */}
+      {/* M-DCPS Style Main Navigation Bar */}
+      <header className="bg-[#284b85] text-white shadow-md sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
+          
+          {/* Mobile Menu Button */}
           <button 
-            className="md:hidden text-slate-200 focus:outline-none"
+            className="md:hidden text-white focus:outline-none"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
+
+          {/* Desktop Navigation Left Links */}
+          <nav className="hidden md:flex items-center space-x-8 text-sm font-medium">
+            <a href="#" className="hover:text-amber-300 transition">Admissions</a>
+            <a href="#" className="hover:text-amber-300 transition">Resources</a>
+            <a href="#" className="hover:text-amber-300 transition">Schools</a>
+          </nav>
+
+          {/* Centered Circular Logo Badge */}
+          <div className="flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-sky-400 border-2 border-white flex items-center justify-center shadow-lg transform hover:scale-105 transition cursor-pointer">
+              <div className="text-center text-[#284b85] font-black text-xs leading-none">
+                GGM
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Navigation Right Links & Actions */}
+          <div className="hidden md:flex items-center space-x-8 text-sm font-medium">
+            <a href="#" className="hover:text-amber-300 transition">News</a>
+            <a href="#" className="hover:text-amber-300 transition">Portal</a>
+            
+            {/* Language Selector */}
+            <div className="flex items-center space-x-1 cursor-pointer hover:text-amber-300 transition text-xs font-semibold">
+              <span>English</span>
+              <ChevronDown className="w-3.5 h-3.5" />
+            </div>
+
+            {/* Search Button */}
+            <button className="hover:text-amber-300 transition focus:outline-none">
+              <Search className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Mobile Right Search */}
+          <button className="md:hidden text-white focus:outline-none">
+            <Search className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* Mobile Nav Dropdown */}
+        {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-[#001a38] px-4 py-4 space-y-3 border-t border-slate-700 text-sm">
-            <a href="#" className="block text-slate-200 hover:text-amber-400">Portals</a>
-            <a href="#" className="block text-slate-200 hover:text-amber-400">Academics</a>
-            <a href="#" className="block text-slate-200 hover:text-amber-400">Directory</a>
+          <div className="md:hidden bg-[#1a3861] px-6 py-4 space-y-3 border-t border-blue-800 text-sm">
+            <a href="#" className="block text-slate-100 hover:text-amber-300">Admissions</a>
+            <a href="#" className="block text-slate-100 hover:text-amber-300">Resources</a>
+            <a href="#" className="block text-slate-100 hover:text-amber-300">Schools</a>
+            <a href="#" className="block text-slate-100 hover:text-amber-300">News</a>
+            <a href="#" className="block text-slate-100 hover:text-amber-300">Portal</a>
             {!username && (
               <a 
                 href="/api/auth/roblox" 
-                className="block text-center bg-amber-500 text-[#002855] font-bold py-2 rounded-md mt-2"
+                className="block text-center bg-amber-500 text-[#1a3861] font-bold py-2 rounded-md mt-2"
               >
                 Log In with Roblox
               </a>
@@ -140,25 +160,25 @@ export default function Home() {
         )}
       </header>
 
-      {/* Hero Banner */}
-      <section className="bg-gradient-to-r from-[#002855] to-[#004080] text-white py-12 px-4 md:px-8 border-b-4 border-amber-400">
+      {/* Hero Banner Section */}
+      <section className="bg-gradient-to-r from-[#284b85] to-[#1a3861] text-white py-14 px-4 md:px-8 border-b-4 border-amber-400">
         <div className="max-w-4xl mx-auto text-center space-y-4">
-          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Welcome to the District Portal</h2>
+          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">GOLDEN GLADES MIDDLE</h2>
           <p className="text-slate-200 text-sm md:text-base max-w-2xl mx-auto">
-            Access grades, schedules, and district announcements customized to your group rank.
+            Your Best Choice for Middle School Education
           </p>
-          <div className="pt-2 max-w-xl mx-auto relative">
+          <div className="pt-4 max-w-xl mx-auto relative">
             <input 
               type="text" 
               placeholder="Search services, staff, or documents..."
-              className="w-full pl-11 pr-4 py-3 rounded-full text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-inner text-sm"
+              className="w-full pl-11 pr-4 py-3 rounded-full text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-lg text-sm"
             />
             <Search className="w-5 h-5 text-slate-400 absolute left-4 top-3.5" />
           </div>
         </div>
       </section>
 
-      {/* Quick Links Display */}
+      {/* Quick Links Dashboard Display */}
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-10 flex-grow w-full">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl md:text-2xl font-bold text-slate-900">
@@ -175,13 +195,13 @@ export default function Home() {
                 className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-md hover:border-blue-300 transition cursor-pointer flex flex-col justify-between group"
               >
                 <div>
-                  <div className="w-12 h-12 rounded-lg bg-blue-50 text-[#002855] flex items-center justify-center mb-4 group-hover:bg-[#002855] group-hover:text-white transition">
+                  <div className="w-12 h-12 rounded-lg bg-blue-50 text-[#284b85] flex items-center justify-center mb-4 group-hover:bg-[#284b85] group-hover:text-white transition">
                     <Icon className="w-6 h-6" />
                   </div>
                   <h4 className="font-bold text-slate-900 group-hover:text-blue-600 transition">{item.title}</h4>
                   <p className="text-xs text-slate-500 mt-2 leading-relaxed">{item.desc}</p>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-semibold text-[#002855] group-hover:translate-x-1 transition">
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-semibold text-[#284b85] group-hover:translate-x-1 transition">
                   Access Now <ChevronRight className="w-3.5 h-3.5 ml-1" />
                 </div>
               </div>
@@ -190,7 +210,7 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="bg-[#001a38] text-slate-400 text-xs py-8 px-4 md:px-8 border-t border-slate-800 mt-12">
+      <footer className="bg-[#1a3861] text-slate-400 text-xs py-8 px-4 md:px-8 border-t border-blue-900 mt-12">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <p>© {new Date().getFullYear()} Golden Glades Middle. All rights reserved.</p>
         </div>

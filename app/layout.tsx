@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Golden Glades Middle",
   description: "Golden Glades Middle School",
   icons: {
-    icon: "/logo.png",
+    icon: "/logo.png", 
   },
 };
 

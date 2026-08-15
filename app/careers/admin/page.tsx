@@ -97,7 +97,7 @@ export default function AdminApplicationPage() {
             <CheckCircle className="w-16 h-16 text-emerald-600 mx-auto" />
             <h2 className="text-2xl font-bold text-slate-900">Application Submitted!</h2>
             <p className="text-slate-600 text-sm leading-relaxed">
-              Thank you for applying for an administrative role at Golden Glades Middle School. Your application is under leadership review.
+              Your application has been submitted. Thank you for applying. You will receive a DM about your results in 1-2 days.
             </p>
             <Link href="/careers" className="inline-block bg-[#284b85] text-white px-6 py-2.5 rounded-full text-xs font-bold hover:bg-[#1a3861] transition">
               Back to Careers

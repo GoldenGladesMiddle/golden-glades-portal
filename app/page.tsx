@@ -186,7 +186,7 @@ export default function Home() {
           <a href="#" className="hover:text-amber-400 transition">Careers</a>
           <a href="#" className="hover:text-amber-400 transition">Directory</a>
           <a href="#" className="hover:text-amber-400 transition">School</a>
-          <a href="#" className="hover:text-amber-400 transition">Principal</a>
+          <a href="#" className="hover:text-amber-400 transition">Director</a>
         </div>
       </div>
 

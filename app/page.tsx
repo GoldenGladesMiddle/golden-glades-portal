@@ -11,8 +11,8 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col justify-between">
       <div>
-        {/* Top Utility Bar */}
-        <div className="bg-[#1a3861] text-slate-200 text-xs py-1.5 px-4 md:px-8 flex justify-between items-center border-b border-blue-900/40">
+        {/* Top Utility Bar - #284b85 */}
+        <div className="bg-[#284b85] text-slate-200 text-xs py-1.5 px-4 md:px-8 flex justify-between items-center border-b border-blue-900/40">
           <div className="flex items-center space-x-4">
             <span className="flex items-center gap-1 text-amber-400 font-semibold">
               <ShieldAlert className="w-3.5 h-3.5" /> Emergency Alerts: Active
@@ -22,8 +22,8 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Main Navigation Bar */}
-        <header className="bg-[#284b85] text-white shadow-md sticky top-0 z-50">
+        {/* Main Navigation Bar - #284b85 */}
+        <header className="bg-[#284b85] text-white shadow-md sticky top-0 z-50 border-t border-blue-400/20">
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-2 flex items-center justify-between">
             <button
               className="md:hidden text-white focus:outline-none"
@@ -70,7 +70,7 @@ export default function HomePage() {
 
           {/* Mobile Menu Dropdown */}
           {mobileMenuOpen && (
-            <div className="md:hidden bg-[#1a3861] px-6 py-4 space-y-3 border-t border-blue-800 text-sm">
+            <div className="md:hidden bg-[#284b85] px-6 py-4 space-y-3 border-t border-blue-800 text-sm">
               <a href="#" className="block text-slate-100 hover:text-amber-300">Admissions</a>
               <a href="#" className="block text-slate-100 hover:text-amber-300">Resources</a>
               <a href="#" className="block text-slate-100 hover:text-amber-300">Schools</a>
@@ -82,7 +82,7 @@ export default function HomePage() {
         </header>
 
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-[#284b85] to-[#1a3861] text-white py-20 px-4 md:px-8 border-b-4 border-amber-400">
+        <section className="bg-gradient-to-r from-[#284b85] to-[#1d3863] text-white py-20 px-4 md:px-8 border-b-4 border-amber-400">
           <div className="max-w-4xl mx-auto text-center space-y-6">
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
               GOLDEN GLADES MIDDLE
@@ -120,7 +120,7 @@ export default function HomePage() {
         </div>
 
         {/* Main Footer with Copyright Notice */}
-        <div className="bg-[#1a3861] text-slate-300 text-xs py-8 px-4 md:px-8 border-t border-blue-900">
+        <div className="bg-[#284b85] text-slate-200 text-xs py-8 px-4 md:px-8 border-t border-blue-900">
           <div className="max-w-7xl mx-auto text-center md:text-left">
             <p>© 2026 Golden Glades Middle. All rights reserved.</p>
           </div>

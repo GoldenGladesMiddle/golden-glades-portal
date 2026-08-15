@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { 
   UserCheck, 
   Calendar, 
@@ -13,7 +14,6 @@ import {
   ChevronRight, 
   User,
   Settings,
-  Globe,
   ChevronDown
 } from 'lucide-react';
 
@@ -108,13 +108,17 @@ export default function Home() {
             <a href="#" className="hover:text-amber-300 transition">Schools</a>
           </nav>
 
-          {/* Centered Circular Logo Badge */}
+          {/* Centered School Logo */}
           <div className="flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full bg-sky-400 border-2 border-white flex items-center justify-center shadow-lg transform hover:scale-105 transition cursor-pointer">
-              <div className="text-center text-[#284b85] font-black text-xs leading-none">
-                GGM
-              </div>
-            </div>
+            <a href="#" className="transform hover:scale-105 transition">
+              <Image 
+                src="/logo.png" 
+                alt="Golden Glades Middle Logo" 
+                width={48} 
+                height={48} 
+                className="w-12 h-12 object-contain"
+              />
+            </a>
           </div>
 
           {/* Desktop Navigation Right Links & Actions */}

@@ -76,15 +76,11 @@ export default function Home() {
           <span className="hidden sm:inline">District ID: #8284465</span>
         </div>
         <div className="flex items-center space-x-4">
-          {username ? (
+          {username && (
             <div className="flex items-center space-x-2 text-amber-300 font-medium">
               <User className="w-3.5 h-3.5" />
               <span>{username} ({role.toUpperCase()})</span>
             </div>
-          ) : (
-            <a href="/api/auth/roblox" className="text-amber-400 font-semibold hover:underline">
-              Log In with Roblox
-            </a>
           )}
         </div>
       </div>
@@ -108,7 +104,7 @@ export default function Home() {
             <a href="#" className="hover:text-amber-300 transition">Schools</a>
           </nav>
 
-          {/* Centered School Logo (Increased Size) */}
+          {/* Centered School Logo */}
           <div className="flex items-center justify-center py-1">
             <a href="#" className="transform hover:scale-105 transition block">
               <Image 
@@ -125,7 +121,14 @@ export default function Home() {
           {/* Desktop Navigation Right Links & Actions */}
           <div className="hidden md:flex items-center space-x-8 text-sm font-medium">
             <a href="#" className="hover:text-amber-300 transition">News</a>
-            <a href="#" className="hover:text-amber-300 transition">Portal</a>
+            
+            {/* Portal Link Triggering Roblox OAuth */}
+            <a 
+              href="/api/auth/roblox" 
+              className="hover:text-amber-300 font-semibold transition"
+            >
+              Portal
+            </a>
             
             {/* Language Selector */}
             <div className="flex items-center space-x-1 cursor-pointer hover:text-amber-300 transition text-xs font-semibold">
@@ -152,15 +155,7 @@ export default function Home() {
             <a href="#" className="block text-slate-100 hover:text-amber-300">Resources</a>
             <a href="#" className="block text-slate-100 hover:text-amber-300">Schools</a>
             <a href="#" className="block text-slate-100 hover:text-amber-300">News</a>
-            <a href="#" className="block text-slate-100 hover:text-amber-300">Portal</a>
-            {!username && (
-              <a 
-                href="/api/auth/roblox" 
-                className="block text-center bg-amber-500 text-[#1a3861] font-bold py-2 rounded-md mt-2"
-              >
-                Log In with Roblox
-              </a>
-            )}
+            <a href="/api/auth/roblox" className="block text-slate-100 hover:text-amber-300 font-bold">Portal</a>
           </div>
         )}
       </header>

@@ -81,8 +81,8 @@ export default function DirectorPage() {
           )}
         </header>
 
-        {/* Banner Heading */}
-        <div className="bg-[#0f2038] text-white text-center py-6 shadow-sm border-b-4 border-amber-400">
+        {/* Banner Heading - Updated color to #1a3861 */}
+        <div className="bg-[#1a3861] text-white text-center py-6 shadow-sm border-b-4 border-amber-400">
           <h1 className="text-3xl md:text-5xl font-black tracking-wider uppercase">
             Director&apos;s Message
           </h1>

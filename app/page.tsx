@@ -115,7 +115,7 @@ export default function HomePage() {
             <Link href="/careers" className="hover:text-amber-400 transition">Careers</Link>
             <a href="#" className="hover:text-amber-400 transition">Directory</a>
             <a href="#" className="hover:text-amber-400 transition">School</a>
-            <a href="#" className="hover:text-amber-400 transition">Director</a>
+            <Link href="/director" className="hover:text-amber-400 transition">Director</Link>
           </div>
         </div>
 

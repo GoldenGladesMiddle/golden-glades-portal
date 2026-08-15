@@ -8,7 +8,8 @@ import {
   BookOpen, 
   FileText, 
   Search,
-  ChevronDown 
+  ChevronDown,
+  LogOut
 } from 'lucide-react';
 
 export default function StudentPortalPage() {
@@ -102,6 +103,17 @@ export default function StudentPortalPage() {
                   <span>Report Card</span>
                 </Link>
               </nav>
+            </div>
+
+            {/* Sign Out Button */}
+            <div className="pt-6 border-t border-blue-800/60 mt-auto">
+              <a
+                href="/api/auth/logout"
+                className="flex items-center space-x-3 text-sm font-semibold text-rose-300 hover:text-rose-100 transition py-1"
+              >
+                <LogOut className="w-4 h-4 text-rose-400" />
+                <span>Sign Out</span>
+              </a>
             </div>
           </aside>
 

@@ -178,6 +178,18 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Custom Bottom Bar Navigation */}
+      <div className="bg-black text-white text-xs font-semibold py-3 px-4 md:px-8 border-b border-neutral-800">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-between gap-y-2 gap-x-6 text-center">
+          <a href="#" className="hover:text-amber-400 transition">Partnerships</a>
+          <a href="#" className="hover:text-amber-400 transition">Calendars</a>
+          <a href="#" className="hover:text-amber-400 transition">Careers</a>
+          <a href="#" className="hover:text-amber-400 transition">Directory</a>
+          <a href="#" className="hover:text-amber-400 transition">School</a>
+          <a href="#" className="hover:text-amber-400 transition">Principal</a>
+        </div>
+      </div>
+
       {/* Quick Links Dashboard Display */}
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-10 flex-grow w-full">
         <div className="flex justify-between items-center mb-6">

@@ -9,17 +9,20 @@ import {
   FileText, 
   Search,
   ChevronDown,
-  LogOut
+  LogOut,
+  X
 } from 'lucide-react';
 
 export default function StudentPortalPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isReportCardOpen, setIsReportCardOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('first');
 
   return (
-    <div className="min-h-screen bg-[#f8f6f0] flex flex-col justify-between font-sans">
+    <div className="min-h-screen bg-[#f8f6f0] flex flex-col justify-between font-sans relative">
       <div>
         {/* 1. Top Navigation Bar (#284b85) */}
-        <header className="bg-[#284b85] text-white shadow-md sticky top-0 z-50">
+        <header className="bg-[#284b85] text-white shadow-md sticky top-0 z-40">
           {/* Top Utility Row */}
           <div className="text-slate-200 text-xs py-1.5 px-4 md:px-8 flex justify-between items-center border-b border-blue-900/40">
             <div className="flex items-center space-x-4">
@@ -95,13 +98,13 @@ export default function StudentPortalPage() {
                   <span>Gradebook</span>
                 </Link>
 
-                <Link 
-                  href="/portal/report-card" 
-                  className="flex items-center space-x-3 text-white hover:text-amber-300 transition py-1"
+                <button 
+                  onClick={() => setIsReportCardOpen(true)}
+                  className="flex items-center space-x-3 text-white hover:text-amber-300 transition py-1 w-full text-left font-semibold"
                 >
                   <FileText className="w-4 h-4 text-amber-400" />
                   <span>Report Card</span>
-                </Link>
+                </button>
               </nav>
             </div>
 
@@ -190,7 +193,7 @@ export default function StudentPortalPage() {
       </div>
 
       {/* 3. Black Footer Sub-Bar */}
-      <footer className="bg-black text-white text-xs font-semibold py-3.5 px-4 md:px-8 border-t-2 border-amber-400 z-50">
+      <footer className="bg-black text-white text-xs font-semibold py-3.5 px-4 md:px-8 border-t-2 border-amber-400 z-40">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-between gap-y-2 gap-x-6 text-center">
           <a href="#" className="hover:text-amber-400 transition">Partnerships</a>
           <a href="#" className="hover:text-amber-400 transition">Calendars</a>
@@ -200,6 +203,132 @@ export default function StudentPortalPage() {
           <Link href="/director" className="hover:text-amber-400 transition">Director</Link>
         </div>
       </footer>
+
+      {/* 4. Report Card Modal Popup */}
+      {isReportCardOpen && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-5xl rounded-sm shadow-2xl border border-slate-300 overflow-hidden text-slate-800 text-xs my-8">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 bg-white">
+              <h2 className="text-xl font-bold text-slate-800 tracking-tight">REPORT CARD</h2>
+              <button 
+                onClick={() => setIsReportCardOpen(false)}
+                className="border border-slate-300 p-1 rounded hover:bg-slate-100 transition"
+              >
+                <X className="w-5 h-5 text-slate-600" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Student Info Banner */}
+              <div className="bg-[#1e4d8c] text-white p-4 rounded-sm space-y-2">
+                <h3 className="font-bold text-sm tracking-wide">Report Card for GUEST STUDENT</h3>
+                <div className="grid grid-cols-2 max-w-xs gap-y-1 font-semibold text-xs">
+                  <span>Weighted GPA:</span>
+                  <span>3.929</span>
+                  <span>Unweighted GPA:</span>
+                  <span>3.429</span>
+                </div>
+              </div>
+
+              {/* Grading Period Tabs */}
+              <div className="border-b border-slate-300 flex text-center font-medium">
+                <button 
+                  onClick={() => setActiveTab('first')}
+                  className={`py-3 px-6 border-b-2 text-xs transition ${activeTab === 'first' ? 'border-blue-600 text-blue-900 font-bold bg-slate-50' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+                >
+                  First Grading Period
+                </button>
+                <button 
+                  onClick={() => setActiveTab('second')}
+                  className={`py-3 px-6 border-b-2 text-xs transition ${activeTab === 'second' ? 'border-blue-600 text-blue-900 font-bold bg-slate-50' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+                >
+                  Second Grading Period
+                </button>
+                <button 
+                  onClick={() => setActiveTab('third')}
+                  className={`py-3 px-6 border-b-2 text-xs transition ${activeTab === 'third' ? 'border-blue-600 text-blue-900 font-bold bg-slate-50' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+                >
+                  Third Grading Period
+                </button>
+                <button 
+                  onClick={() => setActiveTab('fourth')}
+                  className={`py-3 px-6 border-b-2 text-xs transition ${activeTab === 'fourth' ? 'border-blue-600 text-blue-900 font-bold bg-slate-50' : 'border-transparent text-slate-600 hover:text-slate-900'}`}
+                >
+                  Fourth Grading Period
+                </button>
+              </div>
+
+              {/* Report Card Table */}
+              <div className="overflow-x-auto border border-slate-300">
+                <table className="w-full text-left border-collapse text-[11px]">
+                  <thead>
+                    <tr className="border-b border-slate-300 text-slate-700 font-bold bg-slate-50">
+                      <th className="p-2 border-r border-slate-300 w-1/3">COURSE &amp; TEACHER</th>
+                      <th className="p-2 border-r border-slate-300 text-center">PERIOD</th>
+                      <th className="p-2 border-r border-slate-300 text-center">TERM</th>
+                      <th className="p-2 border-r border-slate-300 text-center">GRADE</th>
+                      <th className="p-2 border-r border-slate-300 text-center">EFFORT</th>
+                      <th className="p-2 border-r border-slate-300 text-center">CONDUCT</th>
+                      <th className="p-2 border-r border-slate-300 text-center">ABS</th>
+                      <th className="p-2 border-r border-slate-300 text-center">TD</th>
+                      <th className="p-2 border-r border-slate-300 text-center">CM</th>
+                      <th className="p-2 text-center">Final Grade</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    <tr className="bg-slate-100">
+                      <td className="p-2 border-r border-slate-300 font-semibold">
+                        SCIENCE <br />
+                        <span className="text-[10px] text-slate-500 font-normal">Smith John 1001</span>
+                      </td>
+                      <td className="p-2 border-r border-slate-300 text-center">01</td>
+                      <td className="p-2 border-r border-slate-300 text-center">1</td>
+                      <td className="p-2 border-r border-slate-300 text-center font-bold">A</td>
+                      <td className="p-2 border-r border-slate-300 text-center">1</td>
+                      <td className="p-2 border-r border-slate-300 text-center">A</td>
+                      <td className="p-2 border-r border-slate-300 text-center">0</td>
+                      <td className="p-2 border-r border-slate-300 text-center">0</td>
+                      <td className="p-2 border-r border-slate-300 text-center"></td>
+                      <td className="p-2 text-center font-bold">A</td>
+                    </tr>
+                    <tr className="bg-slate-200">
+                      <td className="p-2 border-r border-slate-300 font-semibold">
+                        COOKING <br />
+                        <span className="text-[10px] text-slate-500 font-normal">Doret Valeska 5100</span>
+                      </td>
+                      <td className="p-2 border-r border-slate-300 text-center">02</td>
+                      <td className="p-2 border-r border-slate-300 text-center">A</td>
+                      <td className="p-2 border-r border-slate-300 text-center font-bold">A</td>
+                      <td className="p-2 border-r border-slate-300 text-center">1</td>
+                      <td className="p-2 border-r border-slate-300 text-center">A</td>
+                      <td className="p-2 border-r border-slate-300 text-center">0</td>
+                      <td className="p-2 border-r border-slate-300 text-center">0</td>
+                      <td className="p-2 border-r border-slate-300 text-center"></td>
+                      <td className="p-2 text-center font-bold">A</td>
+                    </tr>
+                    <tr className="bg-slate-100">
+                      <td className="p-2 border-r border-slate-300 font-semibold">
+                        ENGLISH <br />
+                        <span className="text-[10px] text-slate-500 font-normal">Honer Eboni 1209</span>
+                      </td>
+                      <td className="p-2 border-r border-slate-300 text-center">03</td>
+                      <td className="p-2 border-r border-slate-300 text-center">A</td>
+                      <td className="p-2 border-r border-slate-300 text-center font-bold">A</td>
+                      <td className="p-2 border-r border-slate-300 text-center">1</td>
+                      <td className="p-2 border-r border-slate-300 text-center">A</td>
+                      <td className="p-2 border-r border-slate-300 text-center">0</td>
+                      <td className="p-2 border-r border-slate-300 text-center">0</td>
+                      <td className="p-2 border-r border-slate-300 text-center"></td>
+                      <td className="p-2 text-center font-bold">A</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

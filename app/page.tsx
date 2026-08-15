@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { 
   UserCheck, 
   Calendar, 
@@ -106,7 +107,7 @@ export default function Home() {
 
           {/* Centered School Logo */}
           <div className="flex items-center justify-center py-1">
-            <a href="#" className="transform hover:scale-105 transition block">
+            <Link href="/" className="transform hover:scale-105 transition block">
               <Image 
                 src="/logo.png" 
                 alt="Golden Glades Middle Logo" 
@@ -115,7 +116,7 @@ export default function Home() {
                 className="w-20 h-20 object-contain drop-shadow-md"
                 priority
               />
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Navigation Right Links & Actions */}
@@ -155,6 +156,7 @@ export default function Home() {
             <a href="#" className="block text-slate-100 hover:text-amber-300">Resources</a>
             <a href="#" className="block text-slate-100 hover:text-amber-300">Schools</a>
             <a href="#" className="block text-slate-100 hover:text-amber-300">News</a>
+            <Link href="/careers" className="block text-slate-100 hover:text-amber-300">Careers</Link>
             <a href="/api/auth/roblox" className="block text-slate-100 hover:text-amber-300 font-bold">Portal</a>
           </div>
         )}
@@ -183,7 +185,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-between gap-y-2 gap-x-6 text-center">
           <a href="#" className="hover:text-amber-400 transition">Partnerships</a>
           <a href="#" className="hover:text-amber-400 transition">Calendars</a>
-          <a href="#" className="hover:text-amber-400 transition">Careers</a>
+          <Link href="/careers" className="hover:text-amber-400 transition">Careers</Link>
           <a href="#" className="hover:text-amber-400 transition">Directory</a>
           <a href="#" className="hover:text-amber-400 transition">School</a>
           <a href="#" className="hover:text-amber-400 transition">Director</a>

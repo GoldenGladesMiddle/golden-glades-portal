@@ -5,7 +5,14 @@ export async function POST(request: Request) {
   try {
     const { username, password } = await request.json();
 
-    // Check if the user exists in your file array
+    if (!username || !password) {
+      return NextResponse.json(
+        { message: 'Please provide both username and password.' },
+        { status: 400 }
+      );
+    }
+
+    // Match against local config array
     const user = ADMIN_USERS.find(
       (u) => u.username === username.trim() && u.password === password
     );
@@ -17,18 +24,22 @@ export async function POST(request: Request) {
       );
     }
 
-    // Set cookie and send success
-    const response = NextResponse.json({ success: true, redirectUrl: '/applications/dashboard' });
+    const response = NextResponse.json({ 
+      success: true, 
+      redirectUrl: '/applications/dashboard' 
+    });
     
+    // Set a lightweight session cookie
     response.cookies.set('admin_logged_in', 'true', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
       path: '/',
       maxAge: 60 * 60 * 8, // 8 hours
     });
 
     return response;
   } catch (error) {
-    return NextResponse.json({ message: 'Server error' }, { status: 500 });
+    return NextResponse.json({ message: 'Internal server error.' }, { status: 500 });
   }
 }

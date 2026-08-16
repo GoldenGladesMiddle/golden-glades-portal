@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -30,50 +30,21 @@ interface Application {
   notes: string;
 }
 
-const INITIAL_APPLICATIONS: Application[] = [
-  {
-    id: 'APP-2001',
-    applicantName: 'Robert Martinez',
-    position: 'Staff',
-    submittedDate: '2026-08-10',
-    status: 'Pending',
-    email: 'rmartinez@example.com',
-    phone: '(305) 555-0143',
-    experience: '5 years in administrative support and office operations.',
-    notes: 'Resume and references attached. First aid certified.',
-  },
-  {
-    id: 'APP-2002',
-    applicantName: 'Dr. Sarah Jenkins',
-    position: 'Guidance Counselor',
-    submittedDate: '2026-08-11',
-    status: 'Under Review',
-    email: 'sjenkins@example.com',
-    phone: '(305) 555-0188',
-    experience: '8 years in middle school student counseling & IEP planning.',
-    notes: 'Florida Counseling Certification verified.',
-  },
-  {
-    id: 'APP-2003',
-    applicantName: 'Marcus Sterling',
-    position: 'School Administrator',
-    submittedDate: '2026-08-12',
-    status: 'Approved',
-    email: 'msterling@example.com',
-    phone: '(305) 555-0192',
-    experience: '12 years in educational leadership and curriculum direction.',
-    notes: 'Background check cleared. Interview scheduled.',
-  },
-];
-
 export default function ApplicationsDashboardPage() {
-  const [applications, setApplications] = useState<Application[]>(INITIAL_APPLICATIONS);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [positionFilter, setPositionFilter] = useState<string>('All');
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
-  // Filter Logic
+  // Fetch applications on component load
+  useEffect(() => {
+    fetch('/api/applications')
+      .then((res) => res.json())
+      .then((data) => setApplications(data))
+      .catch((err) => console.error('Error loading applications:', err));
+  }, []);
+
   const filteredApplications = applications.filter((app) => {
     const matchesSearch =
       app.applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -86,7 +57,6 @@ export default function ApplicationsDashboardPage() {
     return matchesSearch && matchesStatus && matchesPosition;
   });
 
-  // Action Handler to update status
   const updateStatus = (id: string, newStatus: Application['status']) => {
     setApplications((prev) =>
       prev.map((app) => (app.id === id ? { ...app, status: newStatus } : app))
@@ -103,7 +73,6 @@ export default function ApplicationsDashboardPage() {
   return (
     <div className="min-h-screen bg-[#f8f6f0] flex flex-col justify-between font-sans">
       <div>
-        {/* Top Header Bar */}
         <header className="bg-[#284b85] text-white shadow-md sticky top-0 z-50">
           <div className="text-slate-200 text-xs py-1.5 px-4 md:px-8 flex justify-between items-center border-b border-blue-900/40">
             <div className="flex items-center space-x-4">
@@ -146,16 +115,13 @@ export default function ApplicationsDashboardPage() {
           </div>
         </header>
 
-        {/* Lime Green Banner */}
         <div className="bg-[#32cd32] text-slate-900 py-3.5 px-6 text-center shadow-inner">
           <h2 className="text-lg md:text-xl font-extrabold tracking-wide">
             Submitted Applications Dashboard
           </h2>
         </div>
 
-        {/* Main Workspace */}
         <main className="max-w-7xl mx-auto px-4 md:px-8 py-8 space-y-6">
-          {/* Summary Stat Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center space-x-4">
               <div className="p-3 bg-blue-100 text-[#0a3161] rounded-lg">
@@ -204,7 +170,6 @@ export default function ApplicationsDashboardPage() {
             </div>
           </div>
 
-          {/* Search & Filter Bar */}
           <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="relative w-full md:w-80">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -251,7 +216,6 @@ export default function ApplicationsDashboardPage() {
             </div>
           </div>
 
-          {/* Table Container */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -316,7 +280,6 @@ export default function ApplicationsDashboardPage() {
         </main>
       </div>
 
-      {/* Review Side Drawer */}
       {selectedApp && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex justify-end">
           <div className="bg-white w-full max-w-lg h-full p-6 shadow-2xl flex flex-col justify-between overflow-y-auto">
@@ -334,7 +297,6 @@ export default function ApplicationsDashboardPage() {
                 </button>
               </div>
 
-              {/* Applicant Details */}
               <div className="space-y-4 text-xs">
                 <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
                   <div>
@@ -375,7 +337,6 @@ export default function ApplicationsDashboardPage() {
               </div>
             </div>
 
-            {/* Status Change Action Buttons */}
             <div className="border-t border-slate-200 pt-4 space-y-3">
               <span className="text-xs font-bold text-slate-700 block">Update Application Status:</span>
               <div className="grid grid-cols-3 gap-2">
@@ -403,7 +364,6 @@ export default function ApplicationsDashboardPage() {
         </div>
       )}
 
-      {/* Footer */}
       <footer className="bg-black text-white text-xs font-semibold py-3.5 px-4 md:px-8 border-t-2 border-amber-400">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-center md:justify-between gap-y-2 gap-x-6 text-center">
           <a href="#" className="hover:text-amber-400 transition">Partnerships</a>

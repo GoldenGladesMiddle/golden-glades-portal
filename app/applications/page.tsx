@@ -5,19 +5,31 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ShieldAlert, Lock, User, CheckCircle2, ArrowLeft } from 'lucide-react';
 
-export default function ApplicationsLoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
       setError('Please enter both your admin username and password.');
       return;
     }
-    setError('');
-    // Handle authentication logic / API calls here
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || 'Login failed.');
+        return;
+      }
+
+      window.location.href = '/applications/dashboard';
+    } catch (err) {
+      setError('An error occurred during sign in.');
+    }
   };
 
   return (

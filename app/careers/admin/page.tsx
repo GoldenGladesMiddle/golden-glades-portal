@@ -6,11 +6,11 @@ import Link from 'next/link';
 import { ShieldAlert, Search, Menu, X, ChevronDown } from 'lucide-react';
 
 export default function AdminApplicationPage() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submitted, setSubmitted] = useState<boolean>(false);
 
-  // Form State initialized to avoid hydration mismatches
+  // Form State
   const [formData, setFormData] = useState({
     email: '',
     reqAvailability: false,
@@ -30,15 +30,20 @@ export default function AdminApplicationPage() {
     resultsOtherDetails: '',
   });
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const target = e.target;
+    const { name, value, type } = target;
+    const checked = (target as HTMLInputElement).checked;
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : (value ?? ''),
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 

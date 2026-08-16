@@ -2,11 +2,15 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get('auth_token')?.value; // Replace 'auth_token' with your actual auth cookie name
+  // Replace 'session' with the exact cookie name set during login (e.g., 'roblox_session', 'token')
+  const sessionToken = request.cookies.get('session')?.value 
+    || request.cookies.get('roblox_token')?.value
+    || request.cookies.get('auth_token')?.value;
+
   const { pathname } = request.nextUrl;
 
-  // If trying to access protected dashboard routes without a session token
-  if (pathname.startsWith('/applications/dashboard') && !token) {
+  // If trying to access dashboard without a valid session cookie
+  if (pathname.startsWith('/applications/dashboard') && !sessionToken) {
     const loginUrl = new URL('/applications', request.url);
     return NextResponse.redirect(loginUrl);
   }

@@ -30,17 +30,26 @@ export default function CounselorApplicationPage() {
     resultsOtherDetails: '',
   });
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
-  };
+// Line ~33
+const handleChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+) => {
+  const target = e.target;
+  const { name, value, type } = target;
+  const checked = (target as HTMLInputElement).checked;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  setFormData((prev) => ({
+    ...prev,
+    [name]: type === 'checkbox' ? checked : (value ?? ''),
+  }));
+};
+
+// Line ~41
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+  // ... rest of submit handler logic
+};
 
     try {
       // Send form data to API endpoint or Webhook handler

@@ -10,7 +10,7 @@ export default function AdminApplicationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  // Form State
+  // Form State initialized to avoid hydration mismatches
   const [formData, setFormData] = useState({
     email: '',
     reqAvailability: false,
@@ -34,7 +34,7 @@ export default function AdminApplicationPage() {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === 'checkbox' ? checked : (value ?? ''),
     }));
   };
 
@@ -43,7 +43,6 @@ export default function AdminApplicationPage() {
     setIsSubmitting(true);
 
     try {
-      // Send form data to API endpoint or Webhook handler
       const response = await fetch('/api/apply/admin', {
         method: 'POST',
         headers: {
@@ -59,7 +58,7 @@ export default function AdminApplicationPage() {
       }
     } catch (error) {
       console.error('Submission error:', error);
-      alert('An unexpected error occurred.');
+      alert('An unexpected error occurred during submission.');
     } finally {
       setIsSubmitting(false);
     }
@@ -254,7 +253,7 @@ export default function AdminApplicationPage() {
                             <input 
                               type="radio" 
                               name="leadershipRating" 
-                              value={num} 
+                              value={String(num)} 
                               checked={formData.leadershipRating === String(num)}
                               onChange={handleChange}
                               required 
@@ -276,7 +275,7 @@ export default function AdminApplicationPage() {
                             <input 
                               type="radio" 
                               name="confidenceRating" 
-                              value={num} 
+                              value={String(num)} 
                               checked={formData.confidenceRating === String(num)}
                               onChange={handleChange}
                               required 

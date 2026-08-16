@@ -5,12 +5,21 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ShieldAlert, Lock, User, CheckCircle2, ArrowLeft } from 'lucide-react';
 
-const handleSubmit = async (e: React.FormEvent) => {
+export default function ApplicationsLoginPage() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
       setError('Please enter both your admin username and password.');
       return;
     }
+
+    setLoading(true);
+    setError('');
 
     try {
       const res = await fetch('/api/auth/login', {
@@ -23,12 +32,14 @@ const handleSubmit = async (e: React.FormEvent) => {
 
       if (!res.ok) {
         setError(data.message || 'Login failed.');
+        setLoading(false);
         return;
       }
 
-      window.location.href = '/applications/dashboard';
+      window.location.href = data.redirectUrl || '/applications/dashboard';
     } catch (err) {
-      setError('An error occurred during sign in.');
+      setError('An error occurred during sign in. Please try again.');
+      setLoading(false);
     }
   };
 
@@ -133,10 +144,11 @@ const handleSubmit = async (e: React.FormEvent) => {
 
               <button
                 type="submit"
-                className="w-full bg-[#0a3161] hover:bg-[#284b85] text-white text-xs font-bold py-2.5 rounded-lg transition shadow-sm flex items-center justify-center gap-2"
+                disabled={loading}
+                className="w-full bg-[#0a3161] hover:bg-[#284b85] text-white text-xs font-bold py-2.5 rounded-lg transition shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 <CheckCircle2 className="w-4 h-4 text-amber-400" />
-                Sign In to Review Applications
+                {loading ? 'Signing In...' : 'Sign In to Review Applications'}
               </button>
             </form>
 

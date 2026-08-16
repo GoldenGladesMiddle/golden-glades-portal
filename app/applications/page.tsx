@@ -33,7 +33,6 @@ export default function ApplicationsLoginPage() {
               <span className="hidden sm:inline text-slate-400">|</span>
               <span className="hidden sm:inline">School ID#: 8284465</span>
             </div>
-            <span className="text-xs text-blue-200 font-mono">applications.goldengladesms.org</span>
           </div>
 
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex items-center justify-between">
@@ -131,7 +130,7 @@ export default function ApplicationsLoginPage() {
 
             <div className="pt-4 border-t border-slate-100 text-center">
               <p className="text-[11px] text-slate-400">
-                Authorized Personnel Only • <span className="font-mono">applications.goldengladesms.org</span>
+                Authorized Personnel Only
               </p>
             </div>
           </div>

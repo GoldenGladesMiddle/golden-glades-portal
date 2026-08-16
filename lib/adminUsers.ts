@@ -1,4 +1,4 @@
 export const ADMIN_USERS = [
-  { username: 'director', password: 'DirectorPassword2026!', name: 'School Director' },
-  { username: 'admin1', password: 'AdminPassword123!', name: 'Assistant Admin' },
+  { username: 'lilman110200', password: 'KMortimer03', name: 'Kel Jordan' },
+  { username: 'iixButterflyax', password: 'Biggz87x', name: 'Kita Fever' },
 ];

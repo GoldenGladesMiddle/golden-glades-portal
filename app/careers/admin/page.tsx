@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from 'link';
 import { ShieldAlert, Search, Menu, X, ChevronDown } from 'lucide-react';
 
 export default function AdminApplicationPage() {

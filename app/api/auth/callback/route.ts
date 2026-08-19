@@ -33,7 +33,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL('/login?error=TokenExchangeFailed', request.url));
     }
 
-    // 2. Fetch basic user info using the access token
+    // 2. Fetch user info using the access token
     const userResponse = await fetch('https://apis.roblox.com/oauth/v1/userinfo', {
       headers: {
         Authorization: `Bearer ${tokenData.access_token}`,
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL('/login?error=FailedToFetchUser', request.url));
     }
 
-    // robloxUser.sub contains the Roblox User ID
+    // Roblox User ID
     const robloxUserId = String(robloxUser.sub);
 
     // 3. Search data/staff.json for this Roblox User ID
@@ -55,16 +55,14 @@ export async function GET(request: Request) {
       (member) => member.robloxUserId === robloxUserId
     );
 
-    // 4. Route user based on staff record match
+    // 4. Redirect based on staff/admin status
     if (staffRecord) {
-      if (staffRecord.role === 'ADMIN') {
-        return NextResponse.redirect(new URL('/careers/admin', request.url));
-      }
-      return NextResponse.redirect(new URL('/careers', request.url));
+      // Matches staff/admin in JSON -> goes to Admin Portal
+      return NextResponse.redirect(new URL('/AdminPortal', request.url));
     }
 
-    // 5. Fallback: Users not in staff.json go to the Student Portal
-    return NextResponse.redirect(new URL('/student', request.url));
+    // 5. Default Fallback -> goes to Student Portal
+    return NextResponse.redirect(new URL('/StudentPortal', request.url));
 
   } catch (error) {
     console.error('OAuth Callback Internal Error:', error);

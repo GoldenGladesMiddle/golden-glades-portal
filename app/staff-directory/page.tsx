@@ -57,7 +57,7 @@ export default function StaffDirectoryPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {staffList.map((member, index) => (
           <div key={index} className="flex items-center space-x-6 p-4">
-            <div className="w-32 h-32 bg-gray-100 border border-dashed border-gray-300 flex-shrink-0 flex items-center justify-center overflow-hidden">
+            <div className="w-32 h-32 bg-slate-800/50 border border-slate-700 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
               {member.image ? (
                 <img
                   src={member.image}
@@ -67,23 +67,23 @@ export default function StaffDirectoryPage() {
               ) : null}
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-slate-800">
+              <h3 className="text-xl font-semibold text-white">
                 {member.name}
               </h3>
-              <p className="text-slate-600 font-medium text-sm mt-1">
+              <p className="text-slate-300 font-medium text-sm mt-1">
                 {member.role}
               </p>
             </div>
           </div>
         ))}
       </div>
-      <hr className="my-8 border-t border-slate-700" />
+      <hr className="my-8 border-t border-slate-800" />
     </div>
   );
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold text-slate-900 mb-8">Staff Directory</h1>
+    <main className="max-w-6xl mx-auto px-4 py-12 text-white">
+      <h1 className="text-3xl font-bold text-white mb-8">Staff Directory</h1>
 
       {renderSection('Leadership', leadership)}
       {renderSection('Teachers', teachers)}

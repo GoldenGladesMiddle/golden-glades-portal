@@ -47,21 +47,24 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL('/login?error=FailedToFetchUser', request.url));
     }
 
-    // Roblox User ID
-    const robloxUserId = String(robloxUser.sub);
+    // Convert Roblox User ID to string and trim
+    const robloxUserId = String(robloxUser.sub).trim();
 
     // 3. Search data/staff.json for this Roblox User ID
     const staffRecord = staffData.find(
-      (member) => member.robloxUserId === robloxUserId
+      (member) => String(member.robloxUserId).trim() === robloxUserId
     );
+
+    // Debugging logs to inspect in server logs
+    console.log('Logged-in Roblox User ID:', robloxUserId);
+    console.log('Found Staff Record:', staffRecord);
 
     // 4. Redirect based on staff/admin status
     if (staffRecord) {
-      // Matches staff/admin in JSON -> goes to Admin Portal
       return NextResponse.redirect(new URL('/AdminPortal', request.url));
     }
 
-    // 5. Default Fallback -> goes to Student Portal
+    // 5. Fallback -> Student Portal
     return NextResponse.redirect(new URL('/StudentPortal', request.url));
 
   } catch (error) {

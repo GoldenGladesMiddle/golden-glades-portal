@@ -155,54 +155,65 @@ export default function Dashboard() {
   };
 
   if (loading || !user) {
-    return <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">Loading portal...</div>;
+    return <div className="min-h-screen bg-[#0d1117] text-white flex items-center justify-center font-sans">Loading portal...</div>;
   }
 
   const isStaffOrAdmin = user.role === 'staff' || user.role === 'admin';
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      <header className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex justify-between items-center shadow-md">
+    <div className="min-h-screen bg-[#0d1117] text-gray-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+      {/* Top Navigation */}
+      <header className="bg-[#161b22] border-b border-gray-800 px-6 py-4 flex justify-between items-center shadow-lg">
         <div>
-          <h1 className="text-xl font-bold tracking-wide text-emerald-400">Golden Glades Middle Portal</h1>
-          <p className="text-xs text-slate-400">Logged in as <span className="text-white font-medium">{user.roblox_username}</span> ({user.group_role_name})</p>
+          <h1 className="text-xl font-bold tracking-wide text-white flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-indigo-500 inline-block"></span>
+            Golden Glades Middle Portal
+          </h1>
+          <p className="text-xs text-gray-400 mt-0.5">Logged in as <span className="text-gray-200 font-medium">{user.roblox_username}</span> ({user.group_role_name})</p>
         </div>
-        <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-semibold transition">
+        <button 
+          onClick={handleLogout} 
+          className="bg-[#21262d] hover:bg-[#30363d] text-gray-200 border border-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
           Log Out
         </button>
       </header>
 
+      {/* Main Container */}
       <div className="flex flex-1 max-w-7xl w-full mx-auto p-6 gap-6">
-        <aside className="w-64 bg-slate-900 p-4 rounded-xl border border-slate-800 flex flex-col gap-2 h-fit">
+        {/* Sidebar Nav */}
+        <aside className="w-64 bg-[#161b22] p-4 rounded-xl border border-gray-800 flex flex-col gap-2 h-fit shadow-md">
           <button 
             onClick={() => setActiveTab('grades')} 
-            className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${activeTab === 'grades' ? 'bg-emerald-600 text-white' : 'hover:bg-slate-800 text-slate-300'}`}>
+            className={`w-full text-left px-4 py-3 rounded-lg font-medium transition text-sm flex items-center gap-3 ${activeTab === 'grades' ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-[#21262d] text-gray-300'}`}>
             📚 Gradebook
           </button>
           <button 
             onClick={() => setActiveTab('detentions')} 
-            className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${activeTab === 'detentions' ? 'bg-emerald-600 text-white' : 'hover:bg-slate-800 text-slate-300'}`}>
+            className={`w-full text-left px-4 py-3 rounded-lg font-medium transition text-sm flex items-center gap-3 ${activeTab === 'detentions' ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-[#21262d] text-gray-300'}`}>
             ⚠️ Detentions
           </button>
           <button 
             onClick={() => setActiveTab('messages')} 
-            className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${activeTab === 'messages' ? 'bg-emerald-600 text-white' : 'hover:bg-slate-800 text-slate-300'}`}>
+            className={`w-full text-left px-4 py-3 rounded-lg font-medium transition text-sm flex items-center gap-3 ${activeTab === 'messages' ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-[#21262d] text-gray-300'}`}>
             💬 Messages Inbox
           </button>
           {isStaffOrAdmin && (
             <button 
               onClick={() => setActiveTab('admin')} 
-              className={`w-full text-left px-4 py-3 rounded-lg font-medium transition ${activeTab === 'admin' ? 'bg-amber-600 text-white' : 'hover:bg-slate-800 text-slate-300'}`}>
+              className={`w-full text-left px-4 py-3 rounded-lg font-medium transition text-sm flex items-center gap-3 ${activeTab === 'admin' ? 'bg-amber-600 text-white shadow-md' : 'hover:bg-[#21262d] text-gray-300'}`}>
               🛡️ Staff Admin Panel
             </button>
           )}
         </aside>
 
-        <main className="flex-1 bg-slate-900 p-6 rounded-xl border border-slate-800">
+        {/* Content Area */}
+        <main className="flex-1 bg-[#161b22] p-6 rounded-xl border border-gray-800 shadow-md">
+          
+          {/* GRADES TAB */}
           {activeTab === 'grades' && (
             <div>
-              <h2 className="text-2xl font-bold mb-4 text-white">Student Gradebook</h2>
-              <p className="text-slate-400 text-sm mb-6">Review your assignment scores across all middle school subjects.</p>
+              <h2 className="text-2xl font-bold mb-1 text-white">Student Gradebook</h2>
+              <p className="text-gray-400 text-sm mb-6">Review your assignment scores across all middle school subjects.</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 {SUBJECTS.map((subj) => {
@@ -210,19 +221,19 @@ export default function Dashboard() {
                   const avg = subGrades.length > 0 ? (subGrades.reduce((acc, curr) => acc + Number(curr.score), 0) / subGrades.length).toFixed(1) : 'N/A';
                   
                   return (
-                    <div key={subj} className="bg-slate-950 p-4 rounded-lg border border-slate-800">
+                    <div key={subj} className="bg-[#0d1117] p-4 rounded-xl border border-gray-800 shadow-sm">
                       <div className="flex justify-between items-center mb-3">
-                        <h3 className="font-semibold text-lg text-emerald-400">{subj}</h3>
-                        <span className="text-xs bg-slate-800 px-2.5 py-1 rounded-full text-slate-300">Average: {avg}</span>
+                        <h3 className="font-semibold text-base text-white">{subj}</h3>
+                        <span className="text-xs bg-[#21262d] text-gray-300 border border-gray-700 px-2.5 py-1 rounded-full font-medium">Average: {avg}</span>
                       </div>
                       {subGrades.length === 0 ? (
-                        <p className="text-xs text-slate-500 italic">No assignments recorded yet.</p>
+                        <p className="text-xs text-gray-500 italic">No assignments recorded yet.</p>
                       ) : (
                         <ul className="space-y-2">
                           {subGrades.map((g, idx) => (
-                            <li key={idx} className="flex justify-between text-sm bg-slate-900 p-2 rounded">
-                              <span className="text-slate-300">{g.assignment_name}</span>
-                              <span className="font-bold text-white">{g.score}</span>
+                            <li key={idx} className="flex justify-between text-sm bg-[#161b22] border border-gray-800 p-2.5 rounded-lg">
+                              <span className="text-gray-300">{g.assignment_name}</span>
+                              <span className="font-semibold text-white">{g.score}</span>
                             </li>
                           ))}
                         </ul>
@@ -234,25 +245,26 @@ export default function Dashboard() {
             </div>
           )}
 
+          {/* DETENTIONS TAB */}
           {activeTab === 'detentions' && (
             <div>
-              <h2 className="text-2xl font-bold mb-4 text-white">Disciplinary Record</h2>
-              <p className="text-slate-400 text-sm mb-6">Active detentions and behavioral notices issued by school staff.</p>
+              <h2 className="text-2xl font-bold mb-1 text-white">Disciplinary Record</h2>
+              <p className="text-gray-400 text-sm mb-6">Active detentions and behavioral notices issued by school staff.</p>
 
               {detentions.length === 0 ? (
-                <div className="bg-slate-950 p-8 rounded-lg border border-slate-800 text-center text-slate-400">
+                <div className="bg-[#0d1117] p-8 rounded-xl border border-gray-800 text-center text-gray-400 shadow-sm">
                   🎉 Clean record! You have no active detentions.
                 </div>
               ) : (
                 <div className="space-y-4">
                   {detentions.map((d, idx) => (
-                    <div key={idx} className="bg-slate-950 p-4 rounded-lg border border-red-900/50 flex flex-col gap-1">
+                    <div key={idx} className="bg-[#0d1117] p-4 rounded-xl border border-red-900/40 shadow-sm flex flex-col gap-1">
                       <div className="flex justify-between">
-                        <span className="text-red-400 font-semibold">Detention Notice</span>
-                        <span className="text-xs text-slate-500">{new Date(d.created_at).toLocaleDateString()}</span>
+                        <span className="text-red-400 font-semibold text-sm">Detention Notice</span>
+                        <span className="text-xs text-gray-500">{new Date(d.created_at).toLocaleDateString()}</span>
                       </div>
-                      <p className="text-slate-200 mt-1"><strong className="text-slate-400">Reason:</strong> {d.reason}</p>
-                      <p className="text-xs text-slate-400 mt-2">Issued by: <span className="text-white">{d.issued_by}</span></p>
+                      <p className="text-gray-200 text-sm mt-1"><strong className="text-gray-400">Reason:</strong> {d.reason}</p>
+                      <p className="text-xs text-gray-400 mt-2">Issued by: <span className="text-white font-medium">{d.issued_by}</span></p>
                     </div>
                   ))}
                 </div>
@@ -260,14 +272,16 @@ export default function Dashboard() {
             </div>
           )}
 
+          {/* MESSAGES TAB */}
           {activeTab === 'messages' && (
             <div>
-              <h2 className="text-2xl font-bold mb-4 text-white">Campus Inbox & Messaging</h2>
-              <p className="text-slate-400 text-sm mb-6">Communicate securely with peers and faculty members.</p>
+              <h2 className="text-2xl font-bold mb-1 text-white">Campus Inbox & Messaging</h2>
+              <p className="text-gray-400 text-sm mb-6">Communicate securely with peers and faculty members.</p>
 
-              <form onSubmit={handleSendMessage} className="bg-slate-950 p-4 rounded-lg border border-slate-800 mb-8 flex flex-col gap-4">
-                <h3 className="font-semibold text-emerald-400">New Message</h3>
-                {sendSuccess && <p className="text-xs bg-emerald-950 text-emerald-400 p-2 rounded">{sendSuccess}</p>}
+              {/* Compose box */}
+              <form onSubmit={handleSendMessage} className="bg-[#0d1117] p-5 rounded-xl border border-gray-800 shadow-sm mb-8 flex flex-col gap-4">
+                <h3 className="font-semibold text-white text-sm">New Message</h3>
+                {sendSuccess && <p className="text-xs bg-emerald-950/60 border border-emerald-800 text-emerald-400 p-2.5 rounded-lg">{sendSuccess}</p>}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input 
                     type="text" 
@@ -275,7 +289,7 @@ export default function Dashboard() {
                     value={recipient} 
                     onChange={e => setRecipient(e.target.value)}
                     required
-                    className="bg-slate-900 border border-slate-700 p-2 rounded text-sm text-white"
+                    className="bg-[#161b22] border border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 p-2.5 rounded-lg text-sm text-white outline-none transition"
                   />
                   <input 
                     type="text" 
@@ -283,7 +297,7 @@ export default function Dashboard() {
                     value={msgTitle} 
                     onChange={e => setMsgTitle(e.target.value)}
                     required
-                    className="bg-slate-900 border border-slate-700 p-2 rounded text-sm text-white"
+                    className="bg-[#161b22] border border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 p-2.5 rounded-lg text-sm text-white outline-none transition"
                   />
                 </div>
                 <textarea 
@@ -292,25 +306,26 @@ export default function Dashboard() {
                   onChange={e => setMsgBody(e.target.value)}
                   required
                   rows={3}
-                  className="bg-slate-900 border border-slate-700 p-2 rounded text-sm text-white"
+                  className="bg-[#161b22] border border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 p-2.5 rounded-lg text-sm text-white outline-none transition resize-none"
                 />
-                <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded text-sm transition w-fit">
+                <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition shadow-sm w-fit">
                   Send Message
                 </button>
               </form>
 
-              <h3 className="font-semibold text-lg text-white mb-4">Received Messages</h3>
+              {/* Inbox list */}
+              <h3 className="font-semibold text-base text-white mb-4">Received Messages</h3>
               {messages.length === 0 ? (
-                <p className="text-slate-500 text-sm italic">Your inbox is empty.</p>
+                <p className="text-gray-500 text-sm italic">Your inbox is empty.</p>
               ) : (
                 <div className="space-y-3">
                   {messages.map((m, idx) => (
-                    <div key={idx} className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col gap-1">
+                    <div key={idx} className="bg-[#0d1117] p-4 rounded-xl border border-gray-800 shadow-sm flex flex-col gap-1">
                       <div className="flex justify-between items-center">
-                        <h4 className="font-semibold text-white">{m.title}</h4>
-                        <span className="text-xs text-slate-500">{new Date(m.created_at).toLocaleString()}</span>
+                        <h4 className="font-semibold text-white text-sm">{m.title}</h4>
+                        <span className="text-xs text-gray-500">{new Date(m.created_at).toLocaleString()}</span>
                       </div>
-                      <p className="text-sm text-slate-300 mt-1">{m.body}</p>
+                      <p className="text-sm text-gray-300 mt-1">{m.body}</p>
                     </div>
                   ))}
                 </div>
@@ -318,27 +333,29 @@ export default function Dashboard() {
             </div>
           )}
 
+          {/* STAFF ADMIN PANEL */}
           {activeTab === 'admin' && isStaffOrAdmin && (
             <div>
-              <h2 className="text-2xl font-bold mb-4 text-amber-400">Staff Administration Panel</h2>
-              <p className="text-slate-400 text-sm mb-6">Manage student discipline records and input course grades.</p>
+              <h2 className="text-2xl font-bold mb-1 text-amber-400">Staff Administration Panel</h2>
+              <p className="text-gray-400 text-sm mb-6">Manage student discipline records and input course grades.</p>
 
               {adminMessage && (
-                <div className="bg-slate-950 border border-amber-500/50 p-3 rounded mb-6 text-sm text-amber-300">
+                <div className="bg-[#0d1117] border border-amber-500/40 p-3 rounded-lg mb-6 text-sm text-amber-300 shadow-sm">
                   {adminMessage}
                 </div>
               )}
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <form onSubmit={handleIssueDetention} className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col gap-3">
-                  <h3 className="font-semibold text-white">Issue Detention</h3>
+                {/* Issue Detention Form */}
+                <form onSubmit={handleIssueDetention} className="bg-[#0d1117] p-5 rounded-xl border border-gray-800 shadow-sm flex flex-col gap-3">
+                  <h3 className="font-semibold text-white text-sm">Issue Detention</h3>
                   <input 
                     type="text" 
                     placeholder="Student Roblox Username" 
                     value={studentUsername}
                     onChange={e => setStudentUsername(e.target.value)}
                     required
-                    className="bg-slate-900 border border-slate-700 p-2 rounded text-sm text-white"
+                    className="bg-[#161b22] border border-gray-700 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 p-2.5 rounded-lg text-sm text-white outline-none transition"
                   />
                   <input 
                     type="text" 
@@ -346,27 +363,28 @@ export default function Dashboard() {
                     value={detentionReason}
                     onChange={e => setDetentionReason(e.target.value)}
                     required
-                    className="bg-slate-900 border border-slate-700 p-2 rounded text-sm text-white"
+                    className="bg-[#161b22] border border-gray-700 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 p-2.5 rounded-lg text-sm text-white outline-none transition"
                   />
-                  <button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded text-sm transition mt-2">
+                  <button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition mt-2 shadow-sm w-fit">
                     Issue Detention
                   </button>
                 </form>
 
-                <form onSubmit={handlePostGrade} className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col gap-3">
-                  <h3 className="font-semibold text-white">Input Assignment Grade</h3>
+                {/* Post Grade Form */}
+                <form onSubmit={handlePostGrade} className="bg-[#0d1117] p-5 rounded-xl border border-gray-800 shadow-sm flex flex-col gap-3">
+                  <h3 className="font-semibold text-white text-sm">Input Assignment Grade</h3>
                   <input 
                     type="text" 
                     placeholder="Student Roblox Username" 
                     value={studentUsername}
                     onChange={e => setStudentUsername(e.target.value)}
                     required
-                    className="bg-slate-900 border border-slate-700 p-2 rounded text-sm text-white"
+                    className="bg-[#161b22] border border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 p-2.5 rounded-lg text-sm text-white outline-none transition"
                   />
                   <select 
                     value={gradeSubject} 
                     onChange={e => setGradeSubject(e.target.value)}
-                    className="bg-slate-900 border border-slate-700 p-2 rounded text-sm text-white">
+                    className="bg-[#161b22] border border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 p-2.5 rounded-lg text-sm text-white outline-none transition">
                     {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                   <input 
@@ -375,7 +393,7 @@ export default function Dashboard() {
                     value={assignmentName}
                     onChange={e => setAssignmentName(e.target.value)}
                     required
-                    className="bg-slate-900 border border-slate-700 p-2 rounded text-sm text-white"
+                    className="bg-[#161b22] border border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 p-2.5 rounded-lg text-sm text-white outline-none transition"
                   />
                   <input 
                     type="number" 
@@ -383,15 +401,16 @@ export default function Dashboard() {
                     value={scoreValue}
                     onChange={e => setScoreValue(e.target.value)}
                     required
-                    className="bg-slate-900 border border-slate-700 p-2 rounded text-sm text-white"
+                    className="bg-[#161b22] border border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 p-2.5 rounded-lg text-sm text-white outline-none transition"
                   />
-                  <button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded text-sm transition mt-2">
+                  <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition mt-2 shadow-sm w-fit">
                     Post Grade
                   </button>
                 </form>
               </div>
             </div>
           )}
+
         </main>
       </div>
     </div>

@@ -33,7 +33,7 @@ export default function Home() {
         .from('users')
         .select('*')
         .ilike('roblox_username', username.trim())
-        .single();
+        .maybeSingle();
 
       if (dbError || !data) {
         setError('Verification not detected yet. Please make sure you joined the game and were kicked with the confirmation message.');

@@ -14,6 +14,8 @@ export default function Dashboard() {
   const [grades, setGrades] = useState([]);
   const [detentions, setDetentions] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [allStudents, setAllStudents] = useState([]);
+  const [allGrades, setAllGrades] = useState([]);
 
   // Form states for messaging
   const [recipient, setRecipient] = useState('');
@@ -37,30 +39,48 @@ export default function Dashboard() {
     }
     const parsedUser = JSON.parse(storedUser);
     setUser(parsedUser);
-    fetchDashboardData(parsedUser.roblox_id, parsedUser.roblox_username);
+    fetchDashboardData(parsedUser.roblox_id, parsedUser.roblox_username, parsedUser.role);
   }, []);
 
-  const fetchDashboardData = async (robloxId, username) => {
+  const fetchDashboardData = async (robloxId, username, role) => {
     setLoading(true);
     try {
+      // Fetch personal grades
       const { data: gradesData } = await supabase
         .from('grades')
         .select('*')
         .eq('student_id', robloxId);
       setGrades(gradesData || []);
 
+      // Fetch personal detentions
       const { data: detentionData } = await supabase
         .from('detentions')
         .select('*')
         .eq('student_id', robloxId);
       setDetentions(detentionData || []);
 
+      // Fetch personal messages
       const { data: msgData } = await supabase
         .from('messages')
         .select('*')
         .eq('recipient_username', username)
         .order('created_at', { ascending: false });
       setMessages(msgData || []);
+
+      // If Staff or Admin, fetch all users and all grades for master gradebook
+      if (role === 'staff' || role === 'admin') {
+        const { data: studentsData } = await supabase
+          .from('users')
+          .select('*')
+          .order('roblox_username', { ascending: true });
+        setAllStudents(studentsData || []);
+
+        const { data: masterGradesData } = await supabase
+          .from('grades')
+          .select('*')
+          .order('created_at', { ascending: false });
+        setAllGrades(masterGradesData || []);
+      }
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
     } finally {
@@ -146,6 +166,21 @@ export default function Dashboard() {
       setStudentUsername('');
       setAssignmentName('');
       setScoreValue('');
+      fetchDashboardData(user.roblox_id, user.roblox_username, user.role);
+    }
+  };
+
+  const handleDeleteGrade = async (gradeId) => {
+    const { error } = await supabase
+      .from('grades')
+      .delete()
+      .eq('id', gradeId);
+
+    if (error) {
+      setAdminMessage('Error deleting grade: ' + error.message);
+    } else {
+      setAdminMessage('Grade entry removed.');
+      fetchDashboardData(user.roblox_id, user.roblox_username, user.role);
     }
   };
 
@@ -186,11 +221,18 @@ export default function Dashboard() {
               ✉️ Messages ({messages.length})
             </button>
             {isStaffOrAdmin && (
-              <button 
-                onClick={() => setActiveTab('admin')} 
-                className={`hover:text-gray-900 transition flex items-center gap-1 ${activeTab === 'admin' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
-                🛡️ Staff Panel
-              </button>
+              <>
+                <button 
+                  onClick={() => setActiveTab('masterGradebook')} 
+                  className={`hover:text-gray-900 transition flex items-center gap-1 ${activeTab === 'masterGradebook' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
+                  📊 Master Gradebook
+                </button>
+                <button 
+                  onClick={() => setActiveTab('admin')} 
+                  className={`hover:text-gray-900 transition flex items-center gap-1 ${activeTab === 'admin' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
+                  🛡️ Staff Panel
+                </button>
+              </>
             )}
           </nav>
         </div>
@@ -205,14 +247,12 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Main Keystone Content Canvas */}
+      {/* Main Content Canvas */}
       <main className="flex-1 max-w-6xl w-full mx-auto p-8">
         
-        {/* HOME OVERVIEW (Matching Keystone Screenshot Layout) */}
+        {/* HOME TAB */}
         {activeTab === 'home' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-            
-            {/* Left Avatar Profile Card */}
             <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col items-center text-center shadow-sm">
               <div className="w-36 h-36 bg-gray-50 rounded border border-gray-100 flex items-center justify-center overflow-hidden mb-4">
                 <img 
@@ -234,7 +274,6 @@ export default function Dashboard() {
               </a>
             </div>
 
-            {/* Right Main Welcome Box */}
             <div className="md:col-span-2 bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
               <h1 className="text-xl font-bold text-gray-900 border-b border-gray-100 pb-3 mb-4">
                 Welcome, {user.roblox_username}!
@@ -245,19 +284,18 @@ export default function Dashboard() {
                 <div>
                   <div className="text-xs text-gray-400 font-semibold mb-1">System · Golden Glades Middle</div>
                   <p className="text-sm text-gray-700">
-                    The administration welcomes you to the Golden Glades Middle School portal! Check your grades, review detention logs, and message staff directly from your dashboard.
+                    The administration welcomes you to the Golden Glades Middle School portal! Check your grades, review detention logs, manage class rosters, and message staff directly from your dashboard.
                   </p>
                 </div>
               </div>
             </div>
-
           </div>
         )}
 
-        {/* GRADES TAB */}
+        {/* PERSONAL GRADES TAB */}
         {activeTab === 'grades' && (
           <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-            <h1 className="text-xl font-bold text-gray-900 mb-1">Student Gradebook</h1>
+            <h1 className="text-xl font-bold text-gray-900 mb-1">My Gradebook</h1>
             <p className="text-xs text-gray-500 mb-6">Course evaluations and academic record for Golden Glades Middle.</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -286,6 +324,54 @@ export default function Dashboard() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* MASTER STAFF/ADMIN GRADEBOOK TAB */}
+        {activeTab === 'masterGradebook' && isStaffOrAdmin && (
+          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+            <h1 className="text-xl font-bold text-gray-900 mb-1">Master Staff Gradebook</h1>
+            <p className="text-xs text-gray-500 mb-6">View, search, and manage student assignment scores across all classes.</p>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse border border-gray-200">
+                <thead>
+                  <tr className="bg-gray-100 text-xs text-gray-600 uppercase border-b border-gray-200">
+                    <th className="p-3">Student</th>
+                    <th className="p-3">Subject</th>
+                    <th className="p-3">Assignment</th>
+                    <th className="p-3">Score</th>
+                    <th className="p-3 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-xs text-gray-800">
+                  {allGrades.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="p-4 text-center text-gray-400 italic">No grades recorded in the school system yet.</td>
+                    </tr>
+                  ) : (
+                    allGrades.map((g) => {
+                      const studentUser = allStudents.find(s => Number(s.roblox_id) === Number(g.student_id));
+                      return (
+                        <tr key={g.id} className="hover:bg-gray-50">
+                          <td className="p-3 font-semibold">{studentUser ? studentUser.roblox_username : `ID: ${g.student_id}`}</td>
+                          <td className="p-3"><span className="bg-gray-100 px-2 py-0.5 rounded text-gray-700 font-medium">{g.subject}</span></td>
+                          <td className="p-3">{g.assignment_name}</td>
+                          <td className="p-3 font-bold text-gray-900">{g.score}%</td>
+                          <td className="p-3 text-right">
+                            <button 
+                              onClick={() => handleDeleteGrade(g.id)}
+                              className="text-red-600 hover:text-red-800 font-semibold px-2 py-1 rounded bg-red-50 hover:bg-red-100 transition">
+                              Remove
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}

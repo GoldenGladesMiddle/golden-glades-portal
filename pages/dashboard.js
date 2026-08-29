@@ -26,12 +26,14 @@ export default function Dashboard() {
   const [detentions, setDetentions] = useState([]);
   const [messages, setMessages] = useState([]);
 
-  // Batch Gradebook states (Staff/Admin)
+  // Gradebook Grid states (Staff/Admin)
   const [selectedClass, setSelectedClass] = useState('Art');
   const [selectedGradeLevel, setSelectedGradeLevel] = useState('5th');
-  const [assignmentName, setAssignmentName] = useState('');
   const [roster, setRoster] = useState([]);
-  const [studentScores, setStudentScores] = useState({});
+  const [classAssignments, setClassAssignments] = useState([]);
+  const [gridGrades, setGridGrades] = useState({});
+  const [newAssignmentName, setNewAssignmentName] = useState('');
+  const [newAssignmentMax, setNewAssignmentMax] = useState('100');
   const [batchStatus, setBatchStatus] = useState('');
 
   // Form states for messaging
@@ -56,10 +58,10 @@ export default function Dashboard() {
     fetchDashboardData(parsedUser.roblox_id, parsedUser.roblox_username);
   }, []);
 
-  // Re-fetch roster when class or grade level changes for batch grading
+  // Re-fetch class grid when filters change
   useEffect(() => {
     if (user && (user.role === 'staff' || user.role === 'admin')) {
-      fetchRosterForBatch();
+      fetchGradebookGrid();
     }
   }, [selectedClass, selectedGradeLevel, user]);
 
@@ -89,15 +91,15 @@ export default function Dashboard() {
       setMessages(msgData || []);
     } catch (err) {
       console.error('Error fetching data:', err);
-    } font-sans finally {
+    } finally {
       setLoading(false);
     }
   };
 
-  const fetchRosterForBatch = async () => {
+  const fetchGradebookGrid = async () => {
     setBatchStatus('');
     try {
-      // Fetch students matching selected grade level
+      // Fetch students for selected grade level
       const { data: studentsData } = await supabase
         .from('users')
         .select('*')
@@ -107,62 +109,83 @@ export default function Dashboard() {
       const currentRoster = studentsData || [];
       setRoster(currentRoster);
 
-      // Fetch existing scores for this class & assignment if editing
-      if (assignmentName.trim()) {
-        const { data: existingGrades } = await supabase
-          .from('grades')
-          .select('*')
-          .eq('subject', selectedClass)
-          .ilike('assignment_name', assignmentName.trim());
-
-        const scoreMap = {};
-        if (existingGrades) {
-          existingGrades.forEach(g => {
-            scoreMap[g.student_id] = g.score;
-          });
-        }
-        setStudentScores(scoreMap);
-      } else {
-        setStudentScores({});
+      if (currentRoster.length === 0) {
+        setClassAssignments([]);
+        setGridGrades({});
+        return;
       }
+
+      const studentIds = currentRoster.map(s => s.roblox_id);
+
+      // Fetch all grades posted for this class & these students
+      const { data: gradesData } = await supabase
+        .from('grades')
+        .select('*')
+        .eq('subject', selectedClass)
+        .in('student_id', studentIds);
+
+      const allClassGrades = gradesData || [];
+
+      // Extract unique assignment names
+      const uniqueAssignments = Array.from(new Set(allClassGrades.map(g => g.assignment_name)));
+      setClassAssignments(uniqueAssignments);
+
+      // Map scores by student_id -> assignment_name
+      const scoreMap = {};
+      allClassGrades.forEach(g => {
+        if (!scoreMap[g.student_id]) scoreMap[g.student_id] = {};
+        scoreMap[g.student_id][g.assignment_name] = g.score;
+      });
+      setGridGrades(scoreMap);
+
     } catch (err) {
-      console.error('Error loading roster:', err);
+      console.error('Error loading gradebook grid:', err);
     }
   };
 
-  const handleScoreChange = (robloxId, score) => {
-    setStudentScores(prev => ({
+  const handleScoreCellChange = (robloxId, assignment, val) => {
+    setGridGrades(prev => ({
       ...prev,
-      [robloxId]: score
+      [robloxId]: {
+        ...(prev[robloxId] || {}),
+        [assignment]: val
+      }
     }));
   };
 
-  const handleSaveBatchGrades = async (e) => {
+  const handleAddAssignment = (e) => {
     e.preventDefault();
-    if (!assignmentName.trim()) {
-      setBatchStatus('Please enter an assignment name.');
-      return;
-    }
+    if (!newAssignmentName.trim()) return;
 
-    setBatchStatus('Saving assignment grades...');
+    if (!classAssignments.includes(newAssignmentName.trim())) {
+      setClassAssignments(prev => [...prev, newAssignmentName.trim()]);
+    }
+    setNewAssignmentName('');
+  };
+
+  const handleSaveGridGrades = async () => {
+    setBatchStatus('Saving class grades...');
 
     try {
       const recordsToUpsert = [];
-      
+
       for (const student of roster) {
-        const score = studentScores[student.roblox_id];
-        if (score !== undefined && score !== '') {
-          recordsToUpsert.push({
-            student_id: student.roblox_id,
-            subject: selectedClass,
-            assignment_name: assignmentName.trim(),
-            score: Number(score)
-          });
+        const studentScores = gridGrades[student.roblox_id] || {};
+        for (const assignment of classAssignments) {
+          const scoreVal = studentScores[assignment];
+          if (scoreVal !== undefined && scoreVal !== '') {
+            recordsToUpsert.push({
+              student_id: student.roblox_id,
+              subject: selectedClass,
+              assignment_name: assignment,
+              score: Number(scoreVal)
+            });
+          }
         }
       }
 
       if (recordsToUpsert.length === 0) {
-        setBatchStatus('No scores entered to save.');
+        setBatchStatus('No assignment scores entered to save.');
         return;
       }
 
@@ -173,11 +196,11 @@ export default function Dashboard() {
       if (error) {
         setBatchStatus('Error saving grades: ' + error.message);
       } else {
-        setBatchStatus('Batch assignment scores saved successfully!');
+        setBatchStatus('Gradebook grid updated successfully!');
         fetchDashboardData(user.roblox_id, user.roblox_username);
       }
     } catch (err) {
-      setBatchStatus('Failed to save batch grades.');
+      setBatchStatus('Failed to save gradebook grid.');
     }
   };
 
@@ -376,11 +399,11 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* BATCH STAFF/ADMIN GRADEBOOK TAB */}
+        {/* STAFF/ADMIN GRADEBOOK GRID TAB */}
         {activeTab === 'batchGradebook' && isStaffOrAdmin && (
           <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-            <h1 className="text-xl font-bold text-gray-900 mb-1">Batch Class Gradebook</h1>
-            <p className="text-xs text-gray-500 mb-6">Select a class and grade level to create, score, and edit assignment marks in list view.</p>
+            <h1 className="text-xl font-bold text-gray-900 mb-1">Class Gradebook Grid</h1>
+            <p className="text-xs text-gray-500 mb-6">Manage assignment scores across students in a traditional gradebook view.</p>
 
             {batchStatus && (
               <div className="bg-blue-50 border border-blue-200 p-3 rounded text-xs text-blue-800 mb-6">
@@ -388,7 +411,7 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* Selection Toolbar */}
+            {/* Class / Grade Filter Bar */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded border border-gray-200 mb-6">
               <div>
                 <label className="block text-xs font-bold text-gray-600 mb-1">Select Class</label>
@@ -410,79 +433,103 @@ export default function Dashboard() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-600 mb-1">Assignment Name</label>
+              {/* Add Assignment Column Form */}
+              <form onSubmit={handleAddAssignment} className="flex flex-col justify-end">
+                <label className="block text-xs font-bold text-gray-600 mb-1">New Assignment Column</label>
                 <div className="flex gap-2">
                   <input 
                     type="text" 
-                    placeholder="e.g. Unit 1 Quiz" 
-                    value={assignmentName}
-                    onChange={e => setAssignmentName(e.target.value)}
+                    placeholder="Assignment Title" 
+                    value={newAssignmentName}
+                    onChange={e => setNewAssignmentName(e.target.value)}
                     className="w-full bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
                   />
                   <button 
-                    type="button"
-                    onClick={fetchRosterForBatch}
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded text-xs font-semibold whitespace-nowrap transition">
-                    Load Scores
+                    type="submit"
+                    className="bg-gray-800 hover:bg-gray-900 text-white px-3 py-1.5 rounded text-xs font-semibold whitespace-nowrap transition">
+                    + Add
                   </button>
                 </div>
-              </div>
+              </form>
             </div>
 
-            {/* Batch Student Roster Table */}
-            <form onSubmit={handleSaveBatchGrades}>
-              <div className="overflow-x-auto border border-gray-200 rounded mb-4">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-gray-100 text-xs text-gray-600 uppercase border-b border-gray-200">
-                      <th className="p-3">Student Name</th>
-                      <th className="p-3">Grade Level</th>
-                      <th className="p-3">Class</th>
-                      <th className="p-3 w-48">Score (%)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 text-xs text-gray-800">
-                    {roster.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="p-6 text-center text-gray-400 italic">
-                          No students registered in {selectedGradeLevel} Grade.
-                        </td>
-                      </tr>
+            {/* Dynamic Gradebook Table Grid */}
+            <div className="overflow-x-auto border border-gray-200 rounded mb-4">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-100 text-xs text-gray-600 uppercase border-b border-gray-200">
+                    <th className="p-3 border-r border-gray-200 min-w-[160px]">Student Name</th>
+                    <th className="p-3 border-r border-gray-200 w-24 text-center">Overall Avg</th>
+                    {classAssignments.length === 0 ? (
+                      <th className="p-3 text-gray-400 italic font-normal">No assignments created yet for {selectedClass}</th>
                     ) : (
-                      roster.map((student) => (
-                        <tr key={student.roblox_id} className="hover:bg-gray-50">
-                          <td className="p-3 font-semibold">{student.roblox_username}</td>
-                          <td className="p-3"><span className="bg-gray-100 px-2 py-0.5 rounded text-gray-600">{student.grade_level || selectedGradeLevel}</span></td>
-                          <td className="p-3 text-gray-600">{selectedClass}</td>
-                          <td className="p-3">
-                            <input 
-                              type="number" 
-                              min="0" 
-                              max="100"
-                              placeholder="Score"
-                              value={studentScores[student.roblox_id] ?? ''}
-                              onChange={e => handleScoreChange(student.roblox_id, e.target.value)}
-                              className="w-28 bg-white border border-gray-300 p-1.5 rounded text-xs text-gray-900 font-bold text-center outline-none focus:border-blue-500"
-                            />
-                          </td>
-                        </tr>
+                      classAssignments.map(asgn => (
+                        <th key={asgn} className="p-3 border-r border-gray-200 text-center min-w-[140px]">
+                          <div>{asgn}</div>
+                          <div className="text-[10px] text-gray-400 font-normal uppercase">Score %</div>
+                        </th>
                       ))
                     )}
-                  </tbody>
-                </table>
-              </div>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-xs text-gray-800">
+                  {roster.length === 0 ? (
+                    <tr>
+                      <td colSpan={2 + Math.max(1, classAssignments.length)} className="p-6 text-center text-gray-400 italic">
+                        No students enrolled in {selectedGradeLevel} Grade.
+                      </td>
+                    </tr>
+                  ) : (
+                    roster.map((student) => {
+                      const studentScores = gridGrades[student.roblox_id] || {};
+                      const numericScores = classAssignments
+                        .map(a => studentScores[a])
+                        .filter(s => s !== undefined && s !== '' && !isNaN(s))
+                        .map(Number);
 
-              {roster.length > 0 && (
-                <div className="flex justify-end">
-                  <button 
-                    type="submit" 
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded text-xs font-bold transition">
-                    Save Batch Scores
-                  </button>
-                </div>
-              )}
-            </form>
+                      const overallAvg = numericScores.length > 0 
+                        ? (numericScores.reduce((a, b) => a + b, 0) / numericScores.length).toFixed(1) + '%'
+                        : '--';
+
+                      return (
+                        <tr key={student.roblox_id} className="hover:bg-gray-50">
+                          <td className="p-3 font-semibold border-r border-gray-200 bg-gray-50/50">{student.roblox_username}</td>
+                          <td className="p-3 border-r border-gray-200 text-center font-bold text-gray-700">{overallAvg}</td>
+                          
+                          {classAssignments.length === 0 ? (
+                            <td className="p-3 text-gray-300 italic">Add an assignment column above</td>
+                          ) : (
+                            classAssignments.map(asgn => (
+                              <td key={asgn} className="p-2 border-r border-gray-200 text-center">
+                                <input 
+                                  type="number" 
+                                  min="0" 
+                                  max="100"
+                                  placeholder="--"
+                                  value={studentScores[asgn] ?? ''}
+                                  onChange={e => handleScoreCellChange(student.roblox_id, asgn, e.target.value)}
+                                  className="w-20 bg-white border border-gray-300 p-1.5 rounded text-xs text-gray-900 font-bold text-center outline-none focus:border-blue-500 focus:bg-blue-50/30"
+                                />
+                              </td>
+                            ))
+                          )}
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {roster.length > 0 && classAssignments.length > 0 && (
+              <div className="flex justify-end">
+                <button 
+                  onClick={handleSaveGridGrades} 
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded text-xs font-bold transition">
+                  Save All Grid Changes
+                </button>
+              </div>
+            )}
           </div>
         )}
 

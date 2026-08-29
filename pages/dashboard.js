@@ -4,12 +4,13 @@ import { supabase } from '../lib/supabase';
 
 const CLASSES = [
   'Science',
-  'Cooking',
+  'Culinary Arts',
   'English',
-  'Drama',
+  'Theatre',
   'Gym',
   'History',
-  'Art'
+  'Art',
+  'Speech & Debate'
 ];
 
 const GRADE_LEVELS = ['5th', '6th', '7th', '8th', 'SPED'];
@@ -52,6 +53,10 @@ export default function Dashboard() {
     grading_period: 'Quarter 1'
   });
 
+  // Students Tab State
+  const [studentSearch, setStudentSearch] = useState('');
+  const [studentFilterGrade, setStudentFilterGrade] = useState('All Students');
+
   // Messaging states
   const [recipient, setRecipient] = useState('');
   const [msgTitle, setMsgTitle] = useState('');
@@ -80,7 +85,6 @@ export default function Dashboard() {
     }
   }, [selectedClass, selectedGradeLevel, selectedQuarter, selectedCategory, user]);
 
-  // Close context dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = () => setActiveMenuAssignmentId(null);
     window.addEventListener('click', handleClickOutside);
@@ -118,26 +122,30 @@ export default function Dashboard() {
   const fetchGradebookGrid = async () => {
     setBatchStatus('');
     try {
-      const { data: studentsData } = await supabase
+      let queryRoster = supabase
         .from('users')
         .select('*')
-        .eq('grade_level', selectedGradeLevel)
         .order('roblox_username', { ascending: true });
 
+      if (selectedGradeLevel !== 'All') {
+        queryRoster = queryRoster.eq('grade_level', selectedGradeLevel);
+      }
+
+      const { data: studentsData } = await queryRoster;
       const currentRoster = studentsData || [];
       setRoster(currentRoster);
 
-      let query = supabase
+      let queryAsgn = supabase
         .from('assignments')
         .select('*')
         .eq('class_name', selectedClass)
         .eq('grading_period', selectedQuarter);
 
       if (selectedCategory !== 'All Categories') {
-        query = query.eq('category', selectedCategory);
+        queryAsgn = queryAsgn.eq('category', selectedCategory);
       }
 
-      const { data: assignmentsData } = await query;
+      const { data: assignmentsData } = await queryAsgn;
       const loadedAssignments = assignmentsData || [];
       setAssignments(loadedAssignments);
 
@@ -391,9 +399,14 @@ export default function Dashboard() {
 
   const isStaffOrAdmin = user.role === 'staff' || user.role === 'admin';
 
+  const filteredStudents = roster.filter(s => 
+    s.roblox_username.toLowerCase().includes(studentSearch.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-gray-100 text-gray-800 flex flex-col font-sans">
-      {/* Top Navbar */}
+      
+      {/* Primary Top Navbar */}
       <header className="bg-white border-b border-gray-200 px-8 py-3 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-6">
           <span className="text-xl font-bold text-gray-900 cursor-pointer" onClick={() => setActiveTab('home')}>
@@ -401,6 +414,9 @@ export default function Dashboard() {
           </span>
           
           <nav className="flex items-center gap-4 text-xs font-semibold tracking-wider text-gray-600 uppercase">
+            <button onClick={() => setActiveTab('home')} className={`hover:text-gray-900 ${activeTab === 'home' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
+              🏠 Home
+            </button>
             <button onClick={() => setActiveTab('grades')} className={`hover:text-gray-900 ${activeTab === 'grades' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
               📝 My Grades
             </button>
@@ -411,14 +427,9 @@ export default function Dashboard() {
               ✉️ Messages ({messages.length})
             </button>
             {isStaffOrAdmin && (
-              <>
-                <button onClick={() => setActiveTab('batchGradebook')} className={`hover:text-gray-900 ${activeTab === 'batchGradebook' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
-                  📊 Gradebook
-                </button>
-                <button onClick={() => setActiveTab('admin')} className={`hover:text-gray-900 ${activeTab === 'admin' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
-                  🛡️ Staff Panel
-                </button>
-              </>
+              <button onClick={() => setActiveTab('admin')} className={`hover:text-gray-900 ${activeTab === 'admin' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
+                🛡️ Staff Panel
+              </button>
             )}
           </nav>
         </div>
@@ -430,6 +441,37 @@ export default function Dashboard() {
           </button>
         </div>
       </header>
+
+      {/* Gradebook Green Sub-Navbar for Staff / Admins */}
+      {isStaffOrAdmin && (
+        <div className="bg-[#a4cf53] px-8 py-2.5 flex items-center gap-8 shadow-inner border-b border-[#92bd44]">
+          <button 
+            onClick={() => setActiveTab('home')}
+            className={`text-sm font-semibold transition ${activeTab === 'home' ? 'text-white font-bold' : 'text-[#385507] hover:text-white'}`}>
+            Home
+          </button>
+          <button 
+            onClick={() => setActiveTab('students')}
+            className={`text-sm font-semibold transition ${activeTab === 'students' ? 'text-white font-bold' : 'text-[#385507] hover:text-white'}`}>
+            Students
+          </button>
+          <button 
+            onClick={() => setActiveTab('classes')}
+            className={`text-sm font-semibold transition ${activeTab === 'classes' ? 'text-white font-bold' : 'text-[#385507] hover:text-white'}`}>
+            Classes
+          </button>
+          <button 
+            onClick={() => setActiveTab('batchGradebook')}
+            className={`text-sm font-semibold transition ${activeTab === 'batchGradebook' ? 'text-white font-bold' : 'text-[#385507] hover:text-white'}`}>
+            Assignments
+          </button>
+          <button 
+            onClick={() => setActiveTab('attendance')}
+            className={`text-sm font-semibold transition ${activeTab === 'attendance' ? 'text-white font-bold' : 'text-[#385507] hover:text-white'}`}>
+            Attendance
+          </button>
+        </div>
+      )}
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-6">
@@ -472,6 +514,165 @@ export default function Dashboard() {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* STUDENTS TAB (ID Number = UserID, GPA included, Gender & Email removed) */}
+        {activeTab === 'students' && isStaffOrAdmin && (
+          <div className="bg-white rounded border border-gray-200 shadow-sm p-6">
+            <h1 className="text-xl text-gray-800 font-normal mb-4">Students</h1>
+
+            {/* Top Search & Filter Bar */}
+            <div className="flex items-center gap-3 mb-6">
+              <select 
+                value={studentFilterGrade}
+                onChange={e => setStudentFilterGrade(e.target.value)}
+                className="bg-white border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500">
+                <option value="All Students">All Students</option>
+                {GRADE_LEVELS.map(g => <option key={g} value={g}>{g} Grade</option>)}
+              </select>
+
+              <div className="relative flex-1 max-w-sm">
+                <input 
+                  type="text"
+                  placeholder="Search students..."
+                  value={studentSearch}
+                  onChange={e => setStudentSearch(e.target.value)}
+                  className="w-full border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800 outline-none focus:border-blue-500 pr-8"
+                />
+                {studentSearch && (
+                  <button 
+                    onClick={() => setStudentSearch('')} 
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs font-bold">
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Students Table */}
+            <div className="overflow-x-auto border border-gray-200 rounded">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 text-xs text-gray-600 border-b border-gray-200">
+                    <th className="p-3 border-r border-gray-200 font-semibold">Student</th>
+                    <th className="p-3 border-r border-gray-200 font-semibold text-center">ID Number</th>
+                    <th className="p-3 border-r border-gray-200 font-semibold text-center">GPA</th>
+                    <th className="p-3 font-semibold text-center w-16"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-xs text-gray-700">
+                  {filteredStudents.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="p-6 text-center text-gray-400 italic">
+                        No students found matching your criteria.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredStudents.map(student => (
+                      <tr key={student.roblox_id} className="hover:bg-gray-50/80">
+                        <td className="p-3 border-r border-gray-200 font-medium text-blue-600 hover:underline cursor-pointer">
+                          {student.roblox_username}
+                        </td>
+                        <td className="p-3 border-r border-gray-200 text-center text-gray-600 font-mono">
+                          {student.roblox_id}
+                        </td>
+                        <td className="p-3 border-r border-gray-200 text-center font-semibold text-gray-800">
+                          {student.gpa ? Number(student.gpa).toFixed(2) : '4.00'}
+                        </td>
+                        <td className="p-3 text-center text-gray-400 hover:text-gray-700 cursor-pointer">
+                          •••
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* CLASSES TAB */}
+        {activeTab === 'classes' && isStaffOrAdmin && (
+          <div className="bg-white rounded border border-gray-200 shadow-sm p-6">
+            <h1 className="text-xl text-gray-800 font-normal mb-4">Classes Directory</h1>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {CLASSES.map(cls => (
+                <div key={cls} className="bg-gray-50 border border-gray-200 p-4 rounded hover:border-gray-300 transition">
+                  <h3 className="font-bold text-sm text-gray-800 mb-1">{cls}</h3>
+                  <p className="text-xs text-gray-500">Golden Glades Middle School Curriculum</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ATTENDANCE TAB */}
+        {activeTab === 'attendance' && isStaffOrAdmin && (
+          <div className="bg-white rounded border border-gray-200 shadow-sm p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="text-xl text-gray-800 font-normal">Attendance Log</h1>
+              <div className="flex gap-2">
+                <button className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs px-3 py-1.5 rounded shadow-sm">Take Attendance</button>
+                <button className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs px-3 py-1.5 rounded shadow-sm">Options</button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 mb-6">
+              <select className="bg-white border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800">
+                <option>Day Summary</option>
+              </select>
+              <select className="bg-white border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800">
+                <option>Overall</option>
+              </select>
+              <select className="bg-white border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800">
+                <option>All Classes</option>
+              </select>
+              <select className="bg-white border border-gray-300 rounded px-3 py-1.5 text-xs text-gray-800">
+                <option>All Students</option>
+              </select>
+            </div>
+
+            <div className="border border-gray-200 rounded overflow-x-auto">
+              <table className="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200 font-semibold text-gray-600">
+                    <th className="p-3 border-r border-gray-200">Date</th>
+                    <th className="p-3 border-r border-gray-200 text-center"><span className="inline-block w-2.5 h-2.5 bg-red-500 mr-1 rounded-xs"></span>U</th>
+                    <th className="p-3 border-r border-gray-200 text-center"><span className="inline-block w-2.5 h-2.5 bg-emerald-500 mr-1 rounded-xs"></span>A</th>
+                    <th className="p-3 border-r border-gray-200 text-center"><span className="inline-block w-2.5 h-2.5 bg-yellow-400 mr-1 rounded-xs"></span>TU</th>
+                    <th className="p-3 border-r border-gray-200 text-center"><span className="inline-block w-2.5 h-2.5 bg-green-500 mr-1 rounded-xs"></span>T</th>
+                    <th className="p-3 border-r border-gray-200 text-center"><span className="inline-block w-2.5 h-2.5 bg-gray-500 mr-1 rounded-xs"></span>ENT</th>
+                    <th className="p-3 border-r border-gray-200 text-center"><span className="inline-block w-2.5 h-2.5 bg-gray-600 mr-1 rounded-xs"></span>WD</th>
+                    <th className="p-3 text-center"><span className="inline-block w-2.5 h-2.5 bg-blue-500 mr-1 rounded-xs"></span>NS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-gray-700">
+                  <tr className="bg-gray-50/50 font-semibold">
+                    <td className="p-3 border-r border-gray-200">Overall Totals</td>
+                    <td className="p-3 border-r border-gray-200 text-center bg-red-100/60 text-red-700">8</td>
+                    <td className="p-3 border-r border-gray-200 text-center">0</td>
+                    <td className="p-3 border-r border-gray-200 text-center bg-yellow-100/60 text-yellow-800">6</td>
+                    <td className="p-3 border-r border-gray-200 text-center">0</td>
+                    <td className="p-3 border-r border-gray-200 text-center bg-gray-200 text-gray-800">37</td>
+                    <td className="p-3 border-r border-gray-200 text-center">0</td>
+                    <td className="p-3 text-center bg-blue-100/60 text-blue-800">12</td>
+                  </tr>
+                  {['2026.08.29 (Sat)', '2026.08.28 (Fri)', '2026.08.27 (Thu)', '2026.08.26 (Wed)'].map(date => (
+                    <tr key={date} className="hover:bg-gray-50">
+                      <td className="p-3 border-r border-gray-200">{date}</td>
+                      <td className="p-3 border-r border-gray-200 text-center">0</td>
+                      <td className="p-3 border-r border-gray-200 text-center">0</td>
+                      <td className="p-3 border-r border-gray-200 text-center">0</td>
+                      <td className="p-3 border-r border-gray-200 text-center">0</td>
+                      <td className="p-3 border-r border-gray-200 text-center">0</td>
+                      <td className="p-3 border-r border-gray-200 text-center">0</td>
+                      <td className="p-3 text-center">0</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}

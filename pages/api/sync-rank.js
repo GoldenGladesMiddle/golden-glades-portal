@@ -1,4 +1,3 @@
-// pages/api/sync-rank.js
 import { supabase } from '../../lib/supabase';
 
 export default async function handler(req, res) {
@@ -13,8 +12,12 @@ export default async function handler(req, res) {
     return res.status(401).json({ message: 'Unauthorized: Invalid or missing secret key' });
   }
 
-  // Debug incoming payload
-  const { robloxId, username, rankId, roleName } = req.body || {};
+  // Flexible extraction supporting camelCase, snake_case, or alternative keys
+  const body = req.body || {};
+  const robloxId = body.robloxId || body.roblox_id || body.userId;
+  const username = body.username || body.roblox_username || body.name;
+  const rankId = body.rankId || body.group_rank || body.rank || 0;
+  const roleName = body.roleName || body.group_role || body.role || 'Guest';
 
   if (!robloxId || !username) {
     return res.status(400).json({ message: 'Missing required Roblox parameters' });
@@ -27,8 +30,8 @@ export default async function handler(req, res) {
         {
           roblox_id: Number(robloxId),
           roblox_username: String(username),
-          group_rank: Number(rankId) || 0,
-          group_role_name: String(roleName || 'Guest'),
+          group_rank: Number(rankId),
+          group_role_name: String(roleName),
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'roblox_id' }
@@ -36,9 +39,8 @@ export default async function handler(req, res) {
       .select();
 
     if (error) {
-      console.error('Supabase error:', error);
-      // Return exact database error to Roblox kick screen for easy debugging
-      return res.status(500).json({ error: error.message, details: error.details, hint: error.hint });
+      console.error('Supabase error:', error.message);
+      return res.status(500).json({ error: error.message });
     }
 
     return res.status(200).json({

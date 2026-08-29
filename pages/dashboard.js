@@ -190,6 +190,36 @@ export default function Dashboard() {
     }
   };
 
+  const handleDeleteAssignment = async (asgn) => {
+    const confirmDelete = window.confirm(`Are you sure you want to delete "${asgn.title}"? This will also delete associated scores.`);
+    if (!confirmDelete) return;
+
+    setBatchStatus(`Deleting "${asgn.title}"...`);
+    try {
+      // 1. Delete associated grades for this assignment
+      await supabase
+        .from('grades')
+        .delete()
+        .eq('subject', selectedClass)
+        .eq('assignment_name', asgn.title);
+
+      // 2. Delete the assignment itself
+      const { error } = await supabase
+        .from('assignments')
+        .delete()
+        .eq('id', asgn.id);
+
+      if (error) {
+        setBatchStatus('Error deleting assignment: ' + error.message);
+      } else {
+        setBatchStatus(`Assignment "${asgn.title}" deleted.`);
+        fetchGradebookGrid();
+      }
+    } catch (err) {
+      setBatchStatus('Failed to delete assignment.');
+    }
+  };
+
   const handleSaveGridGrades = async () => {
     setBatchStatus('Saving scores...');
     try {
@@ -543,8 +573,9 @@ export default function Dashboard() {
             </div>
 
             {batchStatus && (
-              <div className="bg-blue-50 border border-blue-200 p-2.5 rounded text-xs text-blue-800 mb-4">
-                {batchStatus}
+              <div className="bg-blue-50 border border-blue-200 p-2.5 rounded text-xs text-blue-800 mb-4 flex justify-between items-center">
+                <span>{batchStatus}</span>
+                <button onClick={() => setBatchStatus('')} className="text-blue-500 hover:text-blue-700 font-bold ml-2">×</button>
               </div>
             )}
 
@@ -562,8 +593,16 @@ export default function Dashboard() {
                       <th className="p-3 text-gray-400 italic font-normal">No assignments created yet for {selectedClass} ({selectedQuarter})</th>
                     ) : (
                       assignments.map(asgn => (
-                        <th key={asgn.id || asgn.title} className="p-3 border-r border-gray-200 text-center min-w-[140px] font-normal">
-                          <div className="truncate max-w-[150px] font-semibold text-gray-800" title={asgn.title}>{asgn.title}</div>
+                        <th key={asgn.id || asgn.title} className="p-3 border-r border-gray-200 text-center min-w-[140px] font-normal relative group">
+                          <div className="flex justify-between items-start gap-1">
+                            <div className="truncate max-w-[120px] font-semibold text-gray-800" title={asgn.title}>{asgn.title}</div>
+                            <button 
+                              onClick={() => handleDeleteAssignment(asgn)}
+                              title="Delete Assignment"
+                              className="text-gray-300 hover:text-red-600 font-bold text-xs leading-none p-0.5 rounded transition">
+                              ×
+                            </button>
+                          </div>
                           <div className="text-[11px] text-pink-600 border-b border-pink-400 inline-block px-1 mt-0.5">
                             {new Date().toISOString().slice(0, 10).replace(/-/g, '.')}
                           </div>

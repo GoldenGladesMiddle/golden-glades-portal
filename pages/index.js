@@ -27,15 +27,18 @@ export default function Home() {
     setLoading(true);
     setError('');
 
+    const cleanUsername = username.trim();
+
     try {
-      // Fetch user record using exact, case-sensitive match
+      // Exact case-sensitive match against database
       const { data, error: dbError } = await supabase
         .from('users')
         .select('*')
-        .eq('roblox_username', username.trim())
+        .eq('roblox_username', cleanUsername)
         .maybeSingle();
 
       if (dbError || !data) {
+        console.error('Database query error or missing user:', dbError);
         setError('Verification not detected yet. Please make sure you joined the game and were kicked with the confirmation message.');
         setLoading(false);
         return;

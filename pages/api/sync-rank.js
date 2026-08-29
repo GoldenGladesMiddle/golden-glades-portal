@@ -12,15 +12,24 @@ export default async function handler(req, res) {
     return res.status(401).json({ message: 'Unauthorized: Invalid or missing secret key' });
   }
 
-  // Flexible extraction supporting camelCase, snake_case, or alternative keys
   const body = req.body || {};
   const robloxId = body.robloxId || body.roblox_id || body.userId;
   const username = body.username || body.roblox_username || body.name;
-  const rankId = body.rankId || body.group_rank || body.rank || 0;
+  const rankId = Number(body.rankId || body.group_rank || body.rank || 0);
   const roleName = body.roleName || body.group_role || body.role || 'Guest';
 
   if (!robloxId || !username) {
     return res.status(400).json({ message: 'Missing required Roblox parameters' });
+  }
+
+  // Determine portal role based on Roblox group rank ID
+  let portalRole = 'student';
+  if (rankId >= 140 && rankId <= 255) {
+    portalRole = 'admin';
+  } else if (rankId >= 65 && rankId <= 131) {
+    portalRole = 'staff';
+  } else {
+    portalRole = 'student';
   }
 
   try {
@@ -29,9 +38,10 @@ export default async function handler(req, res) {
       .upsert(
         {
           roblox_id: Number(robloxId),
-          roblox_username: String(username),
-          group_rank: Number(rankId),
+          roblox_username: String(username).trim(),
+          group_rank: rankId,
           group_role_name: String(roleName),
+          role: portalRole,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'roblox_id' }
@@ -45,7 +55,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: 'Account rank synced successfully',
+      message: 'Account rank and portal role synced successfully',
       user: data?.[0] || null,
     });
   } catch (err) {

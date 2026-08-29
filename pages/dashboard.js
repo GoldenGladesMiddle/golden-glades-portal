@@ -37,8 +37,12 @@ export default function Dashboard() {
   const [gridGrades, setGridGrades] = useState({});
   const [batchStatus, setBatchStatus] = useState('');
 
-  // Modal State for New Assignment
+  // Dropdown menu state
+  const [activeMenuAssignmentId, setActiveMenuAssignmentId] = useState(null);
+
+  // Modal State for New/Edit Assignment
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [editingAssignmentId, setEditingAssignmentId] = useState(null);
   const [newAssignment, setNewAssignment] = useState({
     title: '',
     class_name: 'Science',
@@ -75,6 +79,13 @@ export default function Dashboard() {
       fetchGradebookGrid();
     }
   }, [selectedClass, selectedGradeLevel, selectedQuarter, selectedCategory, user]);
+
+  // Close context dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setActiveMenuAssignmentId(null);
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, []);
 
   const fetchDashboardData = async (robloxId, username) => {
     setLoading(true);
@@ -165,45 +176,80 @@ export default function Dashboard() {
     }));
   };
 
-  const handleCreateAssignment = async (e) => {
+  const openNewAssignmentModal = () => {
+    setEditingAssignmentId(null);
+    setNewAssignment({
+      title: '',
+      class_name: selectedClass,
+      category: 'Homework',
+      type: 'Standard',
+      points: 100,
+      grading_period: selectedQuarter
+    });
+    setShowAssignmentModal(true);
+  };
+
+  const handleEditAssignmentModal = (asgn) => {
+    setEditingAssignmentId(asgn.id);
+    setNewAssignment({
+      title: asgn.title,
+      class_name: asgn.class_name || selectedClass,
+      category: asgn.category || 'Homework',
+      type: asgn.type || 'Standard',
+      points: asgn.points || 100,
+      grading_period: asgn.grading_period || selectedQuarter
+    });
+    setShowAssignmentModal(true);
+  };
+
+  const handleSaveAssignment = async (e) => {
     e.preventDefault();
     if (!newAssignment.title.trim()) return;
 
     try {
-      const { error } = await supabase
-        .from('assignments')
-        .insert([newAssignment]);
+      if (editingAssignmentId) {
+        const { error } = await supabase
+          .from('assignments')
+          .update(newAssignment)
+          .eq('id', editingAssignmentId);
 
-      if (error) {
-        setBatchStatus('Error creating assignment: ' + error.message);
+        if (error) {
+          setBatchStatus('Error updating assignment: ' + error.message);
+        } else {
+          setBatchStatus(`Assignment updated.`);
+        }
       } else {
-        setShowAssignmentModal(false);
-        setNewAssignment({
-          ...newAssignment,
-          title: '',
-          points: 100
-        });
-        fetchGradebookGrid();
+        const { error } = await supabase
+          .from('assignments')
+          .insert([newAssignment]);
+
+        if (error) {
+          setBatchStatus('Error creating assignment: ' + error.message);
+        } else {
+          setBatchStatus(`Assignment created.`);
+        }
       }
+
+      setShowAssignmentModal(false);
+      setEditingAssignmentId(null);
+      fetchGradebookGrid();
     } catch (err) {
-      console.error('Failed to create assignment:', err);
+      console.error('Failed to save assignment:', err);
     }
   };
 
   const handleDeleteAssignment = async (asgn) => {
-    const confirmDelete = window.confirm(`Are you sure you want to delete "${asgn.title}"? This will also delete associated scores.`);
+    const confirmDelete = window.confirm(`Are you sure you want to delete "${asgn.title}"? This will also delete associated student scores.`);
     if (!confirmDelete) return;
 
     setBatchStatus(`Deleting "${asgn.title}"...`);
     try {
-      // 1. Delete associated grades for this assignment
       await supabase
         .from('grades')
         .delete()
         .eq('subject', selectedClass)
         .eq('assignment_name', asgn.title);
 
-      // 2. Delete the assignment itself
       const { error } = await supabase
         .from('assignments')
         .delete()
@@ -218,6 +264,30 @@ export default function Dashboard() {
     } catch (err) {
       setBatchStatus('Failed to delete assignment.');
     }
+  };
+
+  const handleBulkUpdateScores = (asgn) => {
+    const scoreVal = window.prompt(`Enter a score (0-${asgn.points || 100}) to apply to ALL students for "${asgn.title}":`);
+    if (scoreVal === null || scoreVal.trim() === '') return;
+
+    const numericVal = Number(scoreVal);
+    if (isNaN(numericVal)) {
+      alert('Please enter a valid number.');
+      return;
+    }
+
+    setGridGrades(prev => {
+      const updated = { ...prev };
+      roster.forEach(student => {
+        updated[student.roblox_id] = {
+          ...(updated[student.roblox_id] || {}),
+          [asgn.title]: numericVal
+        };
+      });
+      return updated;
+    });
+
+    setBatchStatus(`Applied ${numericVal}% to "${asgn.title}" for all students. Remember to click Save Scores!`);
   };
 
   const handleSaveGridGrades = async () => {
@@ -535,7 +605,7 @@ export default function Dashboard() {
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-xl text-gray-800 font-normal">Assignment Scores</h1>
               <button 
-                onClick={() => setShowAssignmentModal(true)}
+                onClick={openNewAssignmentModal}
                 className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-xs px-3 py-1.5 rounded shadow-sm transition">
                 New Assignment
               </button>
@@ -580,7 +650,7 @@ export default function Dashboard() {
             )}
 
             {/* Score Grid */}
-            <div className="overflow-x-auto border border-gray-200 rounded">
+            <div className="overflow-x-auto border border-gray-200 rounded min-h-[300px]">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50 text-xs text-gray-600 border-b border-gray-200">
@@ -593,20 +663,55 @@ export default function Dashboard() {
                       <th className="p-3 text-gray-400 italic font-normal">No assignments created yet for {selectedClass} ({selectedQuarter})</th>
                     ) : (
                       assignments.map(asgn => (
-                        <th key={asgn.id || asgn.title} className="p-3 border-r border-gray-200 text-center min-w-[140px] font-normal relative group">
-                          <div className="flex justify-between items-start gap-1">
-                            <div className="truncate max-w-[120px] font-semibold text-gray-800" title={asgn.title}>{asgn.title}</div>
-                            <button 
-                              onClick={() => handleDeleteAssignment(asgn)}
-                              title="Delete Assignment"
-                              className="text-gray-300 hover:text-red-600 font-bold text-xs leading-none p-0.5 rounded transition">
-                              ×
-                            </button>
+                        <th key={asgn.id || asgn.title} className="p-3 border-r border-gray-200 text-center min-w-[160px] font-normal relative">
+                          {/* Interactive Header Title */}
+                          <div 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuAssignmentId(activeMenuAssignmentId === asgn.id ? null : asgn.id);
+                            }}
+                            className="cursor-pointer hover:bg-gray-200/60 p-1 rounded transition flex flex-col items-center">
+                            <div className="truncate max-w-[140px] font-semibold text-gray-800 hover:text-blue-600" title={asgn.title}>
+                              {asgn.title}
+                            </div>
+                            <div className="text-[11px] text-purple-600 border-b border-purple-400 inline-block px-1 mt-0.5">
+                              {new Date(asgn.created_at || Date.now()).toISOString().slice(0, 10).replace(/-/g, '.')}
+                            </div>
+                            <div className="text-[11px] text-gray-400 mt-0.5">{asgn.points ? `${asgn.points}.0 pts` : '100.0 pts'}</div>
                           </div>
-                          <div className="text-[11px] text-pink-600 border-b border-pink-400 inline-block px-1 mt-0.5">
-                            {new Date().toISOString().slice(0, 10).replace(/-/g, '.')}
-                          </div>
-                          <div className="text-[11px] text-gray-400 mt-0.5">{asgn.points ? `${asgn.points}.0 pts` : '100.0 pts'}</div>
+
+                          {/* Assignment Context Dropdown Menu */}
+                          {activeMenuAssignmentId === asgn.id && (
+                            <div 
+                              onClick={(e) => e.stopPropagation()}
+                              className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-44 bg-white border border-gray-200 shadow-xl rounded-md py-1 z-50 text-left">
+                              <button 
+                                onClick={() => {
+                                  setActiveMenuAssignmentId(null);
+                                  handleEditAssignmentModal(asgn);
+                                }}
+                                className="w-full px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                ✏️ Edit Assignment
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setActiveMenuAssignmentId(null);
+                                  handleBulkUpdateScores(asgn);
+                                }}
+                                className="w-full px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                                📝 Bulk Update Scores
+                              </button>
+                              <div className="border-t border-gray-100 my-1"></div>
+                              <button 
+                                onClick={() => {
+                                  setActiveMenuAssignmentId(null);
+                                  handleDeleteAssignment(asgn);
+                                }}
+                                className="w-full px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium">
+                                🗑️ Delete Assignment
+                              </button>
+                            </div>
+                          )}
                         </th>
                       ))
                     )}
@@ -709,16 +814,18 @@ export default function Dashboard() {
 
       </main>
 
-      {/* CREATE NEW ASSIGNMENT MODAL */}
+      {/* CREATE / EDIT ASSIGNMENT MODAL */}
       {showAssignmentModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-md shadow-xl max-w-xl w-full border border-gray-200 overflow-hidden">
             <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h2 className="text-base font-bold text-gray-900">Create New Assignment</h2>
+              <h2 className="text-base font-bold text-gray-900">
+                {editingAssignmentId ? 'Edit Assignment' : 'Create New Assignment'}
+              </h2>
               <button onClick={() => setShowAssignmentModal(false)} className="text-gray-400 hover:text-gray-600 font-bold text-lg">×</button>
             </div>
 
-            <form onSubmit={handleCreateAssignment} className="p-6 text-xs text-gray-700 space-y-3">
+            <form onSubmit={handleSaveAssignment} className="p-6 text-xs text-gray-700 space-y-3">
               <div className="grid grid-cols-3 items-center gap-2">
                 <label className="font-semibold text-gray-600">Title</label>
                 <input 

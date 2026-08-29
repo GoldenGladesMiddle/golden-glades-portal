@@ -13,7 +13,8 @@ export default async function handler(req, res) {
     return res.status(401).json({ message: 'Unauthorized: Invalid or missing secret key' });
   }
 
-  const { robloxId, username, rankId, roleName } = req.body;
+  // Debug incoming payload
+  const { robloxId, username, rankId, roleName } = req.body || {};
 
   if (!robloxId || !username) {
     return res.status(400).json({ message: 'Missing required Roblox parameters' });
@@ -24,10 +25,10 @@ export default async function handler(req, res) {
       .from('users')
       .upsert(
         {
-          roblox_id: robloxId,
-          roblox_username: username,
-          group_rank: rankId || 0,
-          group_role_name: roleName || 'Guest',
+          roblox_id: Number(robloxId),
+          roblox_username: String(username),
+          group_rank: Number(rankId) || 0,
+          group_role_name: String(roleName || 'Guest'),
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'roblox_id' }
@@ -35,17 +36,18 @@ export default async function handler(req, res) {
       .select();
 
     if (error) {
-      console.error('Supabase error:', error.message);
-      return res.status(500).json({ error: error.message });
+      console.error('Supabase error:', error);
+      // Return exact database error to Roblox kick screen for easy debugging
+      return res.status(500).json({ error: error.message, details: error.details, hint: error.hint });
     }
 
     return res.status(200).json({
       success: true,
       message: 'Account rank synced successfully',
-      user: data[0],
+      user: data?.[0] || null,
     });
   } catch (err) {
     console.error('Server error:', err);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: err.message || 'Internal server error' });
   }
 }

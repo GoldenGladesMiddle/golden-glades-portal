@@ -2,7 +2,18 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 
-const SUBJECTS = ['Science', 'Cooking', 'English', 'Drama', 'Gym', 'History', 'Art', 'Speech & Debate'];
+const CLASSES = [
+  'Art',
+  'Culinary Arts',
+  'English',
+  'Gym',
+  'History',
+  'Science',
+  'Speech & Debate',
+  'Theatre'
+];
+
+const GRADE_LEVELS = ['5th', '6th', '7th', '8th', 'SPED'];
 
 export default function Dashboard() {
   const router = useRouter();
@@ -14,8 +25,14 @@ export default function Dashboard() {
   const [grades, setGrades] = useState([]);
   const [detentions, setDetentions] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [allStudents, setAllStudents] = useState([]);
-  const [allGrades, setAllGrades] = useState([]);
+
+  // Batch Gradebook states (Staff/Admin)
+  const [selectedClass, setSelectedClass] = useState('Art');
+  const [selectedGradeLevel, setSelectedGradeLevel] = useState('5th');
+  const [assignmentName, setAssignmentName] = useState('');
+  const [roster, setRoster] = useState([]);
+  const [studentScores, setStudentScores] = useState({});
+  const [batchStatus, setBatchStatus] = useState('');
 
   // Form states for messaging
   const [recipient, setRecipient] = useState('');
@@ -23,12 +40,9 @@ export default function Dashboard() {
   const [msgBody, setMsgBody] = useState('');
   const [sendSuccess, setSendSuccess] = useState('');
 
-  // Admin form states
+  // Admin form states (Detentions)
   const [studentUsername, setStudentUsername] = useState('');
   const [detentionReason, setDetentionReason] = useState('');
-  const [gradeSubject, setGradeSubject] = useState('Science');
-  const [assignmentName, setAssignmentName] = useState('');
-  const [scoreValue, setScoreValue] = useState('');
   const [adminMessage, setAdminMessage] = useState('');
 
   useEffect(() => {
@@ -39,52 +53,131 @@ export default function Dashboard() {
     }
     const parsedUser = JSON.parse(storedUser);
     setUser(parsedUser);
-    fetchDashboardData(parsedUser.roblox_id, parsedUser.roblox_username, parsedUser.role);
+    fetchDashboardData(parsedUser.roblox_id, parsedUser.roblox_username);
   }, []);
 
-  const fetchDashboardData = async (robloxId, username, role) => {
+  // Re-fetch roster when class or grade level changes for batch grading
+  useEffect(() => {
+    if (user && (user.role === 'staff' || user.role === 'admin')) {
+      fetchRosterForBatch();
+    }
+  }, [selectedClass, selectedGradeLevel, user]);
+
+  const fetchDashboardData = async (robloxId, username) => {
     setLoading(true);
     try {
-      // Fetch personal grades
+      // Personal grades
       const { data: gradesData } = await supabase
         .from('grades')
         .select('*')
         .eq('student_id', robloxId);
       setGrades(gradesData || []);
 
-      // Fetch personal detentions
+      // Personal detentions
       const { data: detentionData } = await supabase
         .from('detentions')
         .select('*')
         .eq('student_id', robloxId);
       setDetentions(detentionData || []);
 
-      // Fetch personal messages
+      // Messages
       const { data: msgData } = await supabase
         .from('messages')
         .select('*')
         .eq('recipient_username', username)
         .order('created_at', { ascending: false });
       setMessages(msgData || []);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+    } font-sans finally {
+      setLoading(false);
+    }
+  };
 
-      // If Staff or Admin, fetch all users and all grades for master gradebook
-      if (role === 'staff' || role === 'admin') {
-        const { data: studentsData } = await supabase
-          .from('users')
-          .select('*')
-          .order('roblox_username', { ascending: true });
-        setAllStudents(studentsData || []);
+  const fetchRosterForBatch = async () => {
+    setBatchStatus('');
+    try {
+      // Fetch students matching selected grade level
+      const { data: studentsData } = await supabase
+        .from('users')
+        .select('*')
+        .eq('grade_level', selectedGradeLevel)
+        .order('roblox_username', { ascending: true });
 
-        const { data: masterGradesData } = await supabase
+      const currentRoster = studentsData || [];
+      setRoster(currentRoster);
+
+      // Fetch existing scores for this class & assignment if editing
+      if (assignmentName.trim()) {
+        const { data: existingGrades } = await supabase
           .from('grades')
           .select('*')
-          .order('created_at', { ascending: false });
-        setAllGrades(masterGradesData || []);
+          .eq('subject', selectedClass)
+          .ilike('assignment_name', assignmentName.trim());
+
+        const scoreMap = {};
+        if (existingGrades) {
+          existingGrades.forEach(g => {
+            scoreMap[g.student_id] = g.score;
+          });
+        }
+        setStudentScores(scoreMap);
+      } else {
+        setStudentScores({});
       }
     } catch (err) {
-      console.error('Error fetching dashboard data:', err);
-    } finally {
-      setLoading(false);
+      console.error('Error loading roster:', err);
+    }
+  };
+
+  const handleScoreChange = (robloxId, score) => {
+    setStudentScores(prev => ({
+      ...prev,
+      [robloxId]: score
+    }));
+  };
+
+  const handleSaveBatchGrades = async (e) => {
+    e.preventDefault();
+    if (!assignmentName.trim()) {
+      setBatchStatus('Please enter an assignment name.');
+      return;
+    }
+
+    setBatchStatus('Saving assignment grades...');
+
+    try {
+      const recordsToUpsert = [];
+      
+      for (const student of roster) {
+        const score = studentScores[student.roblox_id];
+        if (score !== undefined && score !== '') {
+          recordsToUpsert.push({
+            student_id: student.roblox_id,
+            subject: selectedClass,
+            assignment_name: assignmentName.trim(),
+            score: Number(score)
+          });
+        }
+      }
+
+      if (recordsToUpsert.length === 0) {
+        setBatchStatus('No scores entered to save.');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('grades')
+        .upsert(recordsToUpsert, { onConflict: 'student_id, subject, assignment_name' });
+
+      if (error) {
+        setBatchStatus('Error saving grades: ' + error.message);
+      } else {
+        setBatchStatus('Batch assignment scores saved successfully!');
+        fetchDashboardData(user.roblox_id, user.roblox_username);
+      }
+    } catch (err) {
+      setBatchStatus('Failed to save batch grades.');
     }
   };
 
@@ -120,7 +213,7 @@ export default function Dashboard() {
       .single();
 
     if (!targetUser) {
-      setAdminMessage('Error: Student username not found in database.');
+      setAdminMessage('Error: Student username not found.');
       return;
     }
 
@@ -139,51 +232,6 @@ export default function Dashboard() {
     }
   };
 
-  const handlePostGrade = async (e) => {
-    e.preventDefault();
-    const { data: targetUser } = await supabase
-      .from('users')
-      .select('roblox_id')
-      .ilike('roblox_username', studentUsername.trim())
-      .single();
-
-    if (!targetUser) {
-      setAdminMessage('Error: Student username not found.');
-      return;
-    }
-
-    const { error } = await supabase.from('grades').insert({
-      student_id: targetUser.roblox_id,
-      subject: gradeSubject,
-      assignment_name: assignmentName,
-      score: Number(scoreValue)
-    });
-
-    if (error) {
-      setAdminMessage('Error posting grade: ' + error.message);
-    } else {
-      setAdminMessage('Grade posted successfully for ' + studentUsername);
-      setStudentUsername('');
-      setAssignmentName('');
-      setScoreValue('');
-      fetchDashboardData(user.roblox_id, user.roblox_username, user.role);
-    }
-  };
-
-  const handleDeleteGrade = async (gradeId) => {
-    const { error } = await supabase
-      .from('grades')
-      .delete()
-      .eq('id', gradeId);
-
-    if (error) {
-      setAdminMessage('Error deleting grade: ' + error.message);
-    } else {
-      setAdminMessage('Grade entry removed.');
-      fetchDashboardData(user.roblox_id, user.roblox_username, user.role);
-    }
-  };
-
   const handleLogout = () => {
     localStorage.removeItem('portal_user');
     router.push('/');
@@ -197,7 +245,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100 text-gray-800 flex flex-col font-sans">
-      {/* Light Navbar */}
+      {/* Light Header Navbar */}
       <header className="bg-white border-b border-gray-200 px-8 py-3 flex justify-between items-center shadow-sm">
         <div className="flex items-center gap-6">
           <span className="text-xl font-bold text-gray-900 tracking-tight cursor-pointer" onClick={() => setActiveTab('home')}>
@@ -208,7 +256,7 @@ export default function Dashboard() {
             <button 
               onClick={() => setActiveTab('grades')} 
               className={`hover:text-gray-900 transition flex items-center gap-1 ${activeTab === 'grades' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
-              📝 Grades
+              📝 My Grades
             </button>
             <button 
               onClick={() => setActiveTab('detentions')} 
@@ -223,9 +271,9 @@ export default function Dashboard() {
             {isStaffOrAdmin && (
               <>
                 <button 
-                  onClick={() => setActiveTab('masterGradebook')} 
-                  className={`hover:text-gray-900 transition flex items-center gap-1 ${activeTab === 'masterGradebook' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
-                  📊 Master Gradebook
+                  onClick={() => setActiveTab('batchGradebook')} 
+                  className={`hover:text-gray-900 transition flex items-center gap-1 ${activeTab === 'batchGradebook' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
+                  📊 Staff Gradebook
                 </button>
                 <button 
                   onClick={() => setActiveTab('admin')} 
@@ -247,10 +295,10 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Main Content Canvas */}
+      {/* Main Container */}
       <main className="flex-1 max-w-6xl w-full mx-auto p-8">
         
-        {/* HOME TAB */}
+        {/* HOME OVERVIEW */}
         {activeTab === 'home' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
             <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col items-center text-center shadow-sm">
@@ -295,11 +343,11 @@ export default function Dashboard() {
         {/* PERSONAL GRADES TAB */}
         {activeTab === 'grades' && (
           <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-            <h1 className="text-xl font-bold text-gray-900 mb-1">My Gradebook</h1>
+            <h1 className="text-xl font-bold text-gray-900 mb-1">My Academic Grades</h1>
             <p className="text-xs text-gray-500 mb-6">Course evaluations and academic record for Golden Glades Middle.</p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {SUBJECTS.map((subj) => {
+              {CLASSES.map((subj) => {
                 const subGrades = grades.filter(g => g.subject.toLowerCase() === subj.toLowerCase());
                 const avg = subGrades.length > 0 ? (subGrades.reduce((acc, curr) => acc + Number(curr.score), 0) / subGrades.length).toFixed(1) : 'N/A';
 
@@ -328,51 +376,113 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* MASTER STAFF/ADMIN GRADEBOOK TAB */}
-        {activeTab === 'masterGradebook' && isStaffOrAdmin && (
+        {/* BATCH STAFF/ADMIN GRADEBOOK TAB */}
+        {activeTab === 'batchGradebook' && isStaffOrAdmin && (
           <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-            <h1 className="text-xl font-bold text-gray-900 mb-1">Master Staff Gradebook</h1>
-            <p className="text-xs text-gray-500 mb-6">View, search, and manage student assignment scores across all classes.</p>
+            <h1 className="text-xl font-bold text-gray-900 mb-1">Batch Class Gradebook</h1>
+            <p className="text-xs text-gray-500 mb-6">Select a class and grade level to create, score, and edit assignment marks in list view.</p>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse border border-gray-200">
-                <thead>
-                  <tr className="bg-gray-100 text-xs text-gray-600 uppercase border-b border-gray-200">
-                    <th className="p-3">Student</th>
-                    <th className="p-3">Subject</th>
-                    <th className="p-3">Assignment</th>
-                    <th className="p-3">Score</th>
-                    <th className="p-3 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-xs text-gray-800">
-                  {allGrades.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="p-4 text-center text-gray-400 italic">No grades recorded in the school system yet.</td>
+            {batchStatus && (
+              <div className="bg-blue-50 border border-blue-200 p-3 rounded text-xs text-blue-800 mb-6">
+                {batchStatus}
+              </div>
+            )}
+
+            {/* Selection Toolbar */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded border border-gray-200 mb-6">
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1">Select Class</label>
+                <select 
+                  value={selectedClass} 
+                  onChange={e => setSelectedClass(e.target.value)}
+                  className="w-full bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500">
+                  {CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1">Select Grade Level</label>
+                <select 
+                  value={selectedGradeLevel} 
+                  onChange={e => setSelectedGradeLevel(e.target.value)}
+                  className="w-full bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500">
+                  {GRADE_LEVELS.map(g => <option key={g} value={g}>{g} Grade</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1">Assignment Name</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Unit 1 Quiz" 
+                    value={assignmentName}
+                    onChange={e => setAssignmentName(e.target.value)}
+                    className="w-full bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
+                  />
+                  <button 
+                    type="button"
+                    onClick={fetchRosterForBatch}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded text-xs font-semibold whitespace-nowrap transition">
+                    Load Scores
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Batch Student Roster Table */}
+            <form onSubmit={handleSaveBatchGrades}>
+              <div className="overflow-x-auto border border-gray-200 rounded mb-4">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-100 text-xs text-gray-600 uppercase border-b border-gray-200">
+                      <th className="p-3">Student Name</th>
+                      <th className="p-3">Grade Level</th>
+                      <th className="p-3">Class</th>
+                      <th className="p-3 w-48">Score (%)</th>
                     </tr>
-                  ) : (
-                    allGrades.map((g) => {
-                      const studentUser = allStudents.find(s => Number(s.roblox_id) === Number(g.student_id));
-                      return (
-                        <tr key={g.id} className="hover:bg-gray-50">
-                          <td className="p-3 font-semibold">{studentUser ? studentUser.roblox_username : `ID: ${g.student_id}`}</td>
-                          <td className="p-3"><span className="bg-gray-100 px-2 py-0.5 rounded text-gray-700 font-medium">{g.subject}</span></td>
-                          <td className="p-3">{g.assignment_name}</td>
-                          <td className="p-3 font-bold text-gray-900">{g.score}%</td>
-                          <td className="p-3 text-right">
-                            <button 
-                              onClick={() => handleDeleteGrade(g.id)}
-                              className="text-red-600 hover:text-red-800 font-semibold px-2 py-1 rounded bg-red-50 hover:bg-red-100 transition">
-                              Remove
-                            </button>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 text-xs text-gray-800">
+                    {roster.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="p-6 text-center text-gray-400 italic">
+                          No students registered in {selectedGradeLevel} Grade.
+                        </td>
+                      </tr>
+                    ) : (
+                      roster.map((student) => (
+                        <tr key={student.roblox_id} className="hover:bg-gray-50">
+                          <td className="p-3 font-semibold">{student.roblox_username}</td>
+                          <td className="p-3"><span className="bg-gray-100 px-2 py-0.5 rounded text-gray-600">{student.grade_level || selectedGradeLevel}</span></td>
+                          <td className="p-3 text-gray-600">{selectedClass}</td>
+                          <td className="p-3">
+                            <input 
+                              type="number" 
+                              min="0" 
+                              max="100"
+                              placeholder="Score"
+                              value={studentScores[student.roblox_id] ?? ''}
+                              onChange={e => handleScoreChange(student.roblox_id, e.target.value)}
+                              className="w-28 bg-white border border-gray-300 p-1.5 rounded text-xs text-gray-900 font-bold text-center outline-none focus:border-blue-500"
+                            />
                           </td>
                         </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {roster.length > 0 && (
+                <div className="flex justify-end">
+                  <button 
+                    type="submit" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded text-xs font-bold transition">
+                    Save Batch Scores
+                  </button>
+                </div>
+              )}
+            </form>
           </div>
         )}
 
@@ -466,7 +576,7 @@ export default function Dashboard() {
         {activeTab === 'admin' && isStaffOrAdmin && (
           <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
             <h1 className="text-xl font-bold text-gray-900 mb-1">Staff Management Panel</h1>
-            <p className="text-xs text-gray-500 mb-6">Issue detentions and input assignment marks for registered students.</p>
+            <p className="text-xs text-gray-500 mb-6">Issue detentions and administrative notices to students.</p>
 
             {adminMessage && (
               <div className="bg-amber-50 border border-amber-200 p-3 rounded text-xs text-amber-800 mb-6">
@@ -474,69 +584,28 @@ export default function Dashboard() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Issue Detention */}
-              <form onSubmit={handleIssueDetention} className="bg-gray-50 p-4 rounded border border-gray-200 flex flex-col gap-3">
-                <h3 className="font-bold text-xs uppercase text-gray-600 tracking-wider">Issue Detention</h3>
-                <input 
-                  type="text" 
-                  placeholder="Student Roblox Username" 
-                  value={studentUsername}
-                  onChange={e => setStudentUsername(e.target.value)}
-                  required
-                  className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
-                />
-                <input 
-                  type="text" 
-                  placeholder="Reason" 
-                  value={detentionReason}
-                  onChange={e => setDetentionReason(e.target.value)}
-                  required
-                  className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
-                />
-                <button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-1.5 px-4 rounded text-xs transition w-fit">
-                  Issue Notice
-                </button>
-              </form>
-
-              {/* Post Grade */}
-              <form onSubmit={handlePostGrade} className="bg-gray-50 p-4 rounded border border-gray-200 flex flex-col gap-3">
-                <h3 className="font-bold text-xs uppercase text-gray-600 tracking-wider">Input Assignment Score</h3>
-                <input 
-                  type="text" 
-                  placeholder="Student Roblox Username" 
-                  value={studentUsername}
-                  onChange={e => setStudentUsername(e.target.value)}
-                  required
-                  className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
-                />
-                <select 
-                  value={gradeSubject} 
-                  onChange={e => setGradeSubject(e.target.value)}
-                  className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500">
-                  {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-                <input 
-                  type="text" 
-                  placeholder="Assignment Name" 
-                  value={assignmentName}
-                  onChange={e => setAssignmentName(e.target.value)}
-                  required
-                  className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
-                />
-                <input 
-                  type="number" 
-                  placeholder="Score (0-100)" 
-                  value={scoreValue}
-                  onChange={e => setScoreValue(e.target.value)}
-                  required
-                  className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
-                />
-                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-4 rounded text-xs transition w-fit">
-                  Submit Grade
-                </button>
-              </form>
-            </div>
+            <form onSubmit={handleIssueDetention} className="bg-gray-50 p-4 rounded border border-gray-200 flex flex-col gap-3 max-w-lg">
+              <h3 className="font-bold text-xs uppercase text-gray-600 tracking-wider">Issue Detention</h3>
+              <input 
+                type="text" 
+                placeholder="Student Roblox Username" 
+                value={studentUsername}
+                onChange={e => setStudentUsername(e.target.value)}
+                required
+                className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
+              />
+              <input 
+                type="text" 
+                placeholder="Reason" 
+                value={detentionReason}
+                onChange={e => setDetentionReason(e.target.value)}
+                required
+                className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
+              />
+              <button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-1.5 px-4 rounded text-xs transition w-fit">
+                Issue Notice
+              </button>
+            </form>
           </div>
         )}
 

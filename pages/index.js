@@ -28,11 +28,11 @@ export default function Home() {
     setError('');
 
     try {
-      // Fetch user rank from Supabase to confirm sync
+      // Fetch user record using exact, case-sensitive match
       const { data, error: dbError } = await supabase
         .from('users')
         .select('*')
-        .ilike('roblox_username', username.trim())
+        .eq('roblox_username', username.trim())
         .maybeSingle();
 
       if (dbError || !data) {

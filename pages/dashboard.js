@@ -7,7 +7,7 @@ const SUBJECTS = ['Science', 'Cooking', 'English', 'Drama', 'Gym', 'History', 'A
 export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('grades');
+  const [activeTab, setActiveTab] = useState('home');
   const [loading, setLoading] = useState(true);
 
   // Data states
@@ -155,264 +155,306 @@ export default function Dashboard() {
   };
 
   if (loading || !user) {
-    return <div className="min-h-screen bg-[#0d1117] text-white flex items-center justify-center font-sans">Loading portal...</div>;
+    return <div className="min-h-screen bg-gray-100 text-gray-800 flex items-center justify-center font-sans">Loading portal...</div>;
   }
 
   const isStaffOrAdmin = user.role === 'staff' || user.role === 'admin';
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-gray-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      {/* Top Navigation */}
-      <header className="bg-[#161b22] border-b border-gray-800 px-6 py-4 flex justify-between items-center shadow-lg">
-        <div>
-          <h1 className="text-xl font-bold tracking-wide text-white flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-indigo-500 inline-block"></span>
-            Golden Glades Middle Portal
-          </h1>
-          <p className="text-xs text-gray-400 mt-0.5">Logged in as <span className="text-gray-200 font-medium">{user.roblox_username}</span> ({user.group_role_name})</p>
+    <div className="min-h-screen bg-gray-100 text-gray-800 flex flex-col font-sans">
+      {/* Light Navbar */}
+      <header className="bg-white border-b border-gray-200 px-8 py-3 flex justify-between items-center shadow-sm">
+        <div className="flex items-center gap-6">
+          <span className="text-xl font-bold text-gray-900 tracking-tight cursor-pointer" onClick={() => setActiveTab('home')}>
+            Golden Glades
+          </span>
+          
+          <nav className="flex items-center gap-4 text-xs font-semibold tracking-wider text-gray-600 uppercase">
+            <button 
+              onClick={() => setActiveTab('grades')} 
+              className={`hover:text-gray-900 transition flex items-center gap-1 ${activeTab === 'grades' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
+              📝 Grades
+            </button>
+            <button 
+              onClick={() => setActiveTab('detentions')} 
+              className={`hover:text-gray-900 transition flex items-center gap-1 ${activeTab === 'detentions' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
+              👓 Detentions
+            </button>
+            <button 
+              onClick={() => setActiveTab('messages')} 
+              className={`hover:text-gray-900 transition flex items-center gap-1 ${activeTab === 'messages' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
+              ✉️ Messages ({messages.length})
+            </button>
+            {isStaffOrAdmin && (
+              <button 
+                onClick={() => setActiveTab('admin')} 
+                className={`hover:text-gray-900 transition flex items-center gap-1 ${activeTab === 'admin' ? 'text-gray-900 font-bold border-b-2 border-gray-900 pb-0.5' : ''}`}>
+                🛡️ Staff Panel
+              </button>
+            )}
+          </nav>
         </div>
-        <button 
-          onClick={handleLogout} 
-          className="bg-[#21262d] hover:bg-[#30363d] text-gray-200 border border-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
-          Log Out
-        </button>
+
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">{user.roblox_username}</span>
+          <button 
+            onClick={handleLogout} 
+            className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded font-semibold transition">
+            Log Out
+          </button>
+        </div>
       </header>
 
-      {/* Main Container */}
-      <div className="flex flex-1 max-w-7xl w-full mx-auto p-6 gap-6">
-        {/* Sidebar Nav */}
-        <aside className="w-64 bg-[#161b22] p-4 rounded-xl border border-gray-800 flex flex-col gap-2 h-fit shadow-md">
-          <button 
-            onClick={() => setActiveTab('grades')} 
-            className={`w-full text-left px-4 py-3 rounded-lg font-medium transition text-sm flex items-center gap-3 ${activeTab === 'grades' ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-[#21262d] text-gray-300'}`}>
-            📚 Gradebook
-          </button>
-          <button 
-            onClick={() => setActiveTab('detentions')} 
-            className={`w-full text-left px-4 py-3 rounded-lg font-medium transition text-sm flex items-center gap-3 ${activeTab === 'detentions' ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-[#21262d] text-gray-300'}`}>
-            ⚠️ Detentions
-          </button>
-          <button 
-            onClick={() => setActiveTab('messages')} 
-            className={`w-full text-left px-4 py-3 rounded-lg font-medium transition text-sm flex items-center gap-3 ${activeTab === 'messages' ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-[#21262d] text-gray-300'}`}>
-            💬 Messages Inbox
-          </button>
-          {isStaffOrAdmin && (
-            <button 
-              onClick={() => setActiveTab('admin')} 
-              className={`w-full text-left px-4 py-3 rounded-lg font-medium transition text-sm flex items-center gap-3 ${activeTab === 'admin' ? 'bg-amber-600 text-white shadow-md' : 'hover:bg-[#21262d] text-gray-300'}`}>
-              🛡️ Staff Admin Panel
-            </button>
-          )}
-        </aside>
+      {/* Main Keystone Content Canvas */}
+      <main className="flex-1 max-w-6xl w-full mx-auto p-8">
+        
+        {/* HOME OVERVIEW (Matching Keystone Screenshot Layout) */}
+        {activeTab === 'home' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            
+            {/* Left Avatar Profile Card */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6 flex flex-col items-center text-center shadow-sm">
+              <div className="w-36 h-36 bg-gray-50 rounded border border-gray-100 flex items-center justify-center overflow-hidden mb-4">
+                <img 
+                  src={`https://www.roblox.com/headshot-thumbnail/image?userId=${user.roblox_id}&width=180&height=180&format=png`} 
+                  alt={user.roblox_username}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.target.src = 'https://tr.rbxcdn.com/30day-avatar-headshot'; }}
+                />
+              </div>
+              <h2 className="text-lg font-bold text-gray-900 mb-1">{user.roblox_username}</h2>
+              <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded font-medium mb-4">{user.group_role_name}</span>
 
-        {/* Content Area */}
-        <main className="flex-1 bg-[#161b22] p-6 rounded-xl border border-gray-800 shadow-md">
-          
-          {/* GRADES TAB */}
-          {activeTab === 'grades' && (
-            <div>
-              <h2 className="text-2xl font-bold mb-1 text-white">Student Gradebook</h2>
-              <p className="text-gray-400 text-sm mb-6">Review your assignment scores across all middle school subjects.</p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                {SUBJECTS.map((subj) => {
-                  const subGrades = grades.filter(g => g.subject.toLowerCase() === subj.toLowerCase());
-                  const avg = subGrades.length > 0 ? (subGrades.reduce((acc, curr) => acc + Number(curr.score), 0) / subGrades.length).toFixed(1) : 'N/A';
-                  
-                  return (
-                    <div key={subj} className="bg-[#0d1117] p-4 rounded-xl border border-gray-800 shadow-sm">
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="font-semibold text-base text-white">{subj}</h3>
-                        <span className="text-xs bg-[#21262d] text-gray-300 border border-gray-700 px-2.5 py-1 rounded-full font-medium">Average: {avg}</span>
-                      </div>
-                      {subGrades.length === 0 ? (
-                        <p className="text-xs text-gray-500 italic">No assignments recorded yet.</p>
-                      ) : (
-                        <ul className="space-y-2">
-                          {subGrades.map((g, idx) => (
-                            <li key={idx} className="flex justify-between text-sm bg-[#161b22] border border-gray-800 p-2.5 rounded-lg">
-                              <span className="text-gray-300">{g.assignment_name}</span>
-                              <span className="font-semibold text-white">{g.score}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  );
-                })}
+              <a 
+                href="https://discord.gg" 
+                target="_blank" 
+                rel="noreferrer" 
+                className="w-full border border-blue-500 text-blue-500 hover:bg-blue-50 py-1.5 rounded text-xs font-bold transition flex items-center justify-center gap-1.5">
+                💬 Discord
+              </a>
+            </div>
+
+            {/* Right Main Welcome Box */}
+            <div className="md:col-span-2 bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+              <h1 className="text-xl font-bold text-gray-900 border-b border-gray-100 pb-3 mb-4">
+                Welcome, {user.roblox_username}!
+              </h1>
+
+              <div className="flex gap-3 items-start">
+                <span className="text-amber-500 text-lg">📣</span>
+                <div>
+                  <div className="text-xs text-gray-400 font-semibold mb-1">System · Golden Glades Middle</div>
+                  <p className="text-sm text-gray-700">
+                    The administration welcomes you to the Golden Glades Middle School portal! Check your grades, review detention logs, and message staff directly from your dashboard.
+                  </p>
+                </div>
               </div>
             </div>
-          )}
 
-          {/* DETENTIONS TAB */}
-          {activeTab === 'detentions' && (
-            <div>
-              <h2 className="text-2xl font-bold mb-1 text-white">Disciplinary Record</h2>
-              <p className="text-gray-400 text-sm mb-6">Active detentions and behavioral notices issued by school staff.</p>
+          </div>
+        )}
 
-              {detentions.length === 0 ? (
-                <div className="bg-[#0d1117] p-8 rounded-xl border border-gray-800 text-center text-gray-400 shadow-sm">
-                  🎉 Clean record! You have no active detentions.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {detentions.map((d, idx) => (
-                    <div key={idx} className="bg-[#0d1117] p-4 rounded-xl border border-red-900/40 shadow-sm flex flex-col gap-1">
-                      <div className="flex justify-between">
-                        <span className="text-red-400 font-semibold text-sm">Detention Notice</span>
-                        <span className="text-xs text-gray-500">{new Date(d.created_at).toLocaleDateString()}</span>
-                      </div>
-                      <p className="text-gray-200 text-sm mt-1"><strong className="text-gray-400">Reason:</strong> {d.reason}</p>
-                      <p className="text-xs text-gray-400 mt-2">Issued by: <span className="text-white font-medium">{d.issued_by}</span></p>
+        {/* GRADES TAB */}
+        {activeTab === 'grades' && (
+          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+            <h1 className="text-xl font-bold text-gray-900 mb-1">Student Gradebook</h1>
+            <p className="text-xs text-gray-500 mb-6">Course evaluations and academic record for Golden Glades Middle.</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {SUBJECTS.map((subj) => {
+                const subGrades = grades.filter(g => g.subject.toLowerCase() === subj.toLowerCase());
+                const avg = subGrades.length > 0 ? (subGrades.reduce((acc, curr) => acc + Number(curr.score), 0) / subGrades.length).toFixed(1) : 'N/A';
+
+                return (
+                  <div key={subj} className="bg-gray-50 p-4 rounded border border-gray-200">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="font-bold text-sm text-gray-800">{subj}</h3>
+                      <span className="text-xs bg-white text-gray-600 border border-gray-200 px-2 py-0.5 rounded font-semibold">Avg: {avg}</span>
                     </div>
-                  ))}
-                </div>
-              )}
+                    {subGrades.length === 0 ? (
+                      <p className="text-xs text-gray-400 italic">No grade records posted.</p>
+                    ) : (
+                      <ul className="space-y-1.5">
+                        {subGrades.map((g, idx) => (
+                          <li key={idx} className="flex justify-between text-xs bg-white p-2 rounded border border-gray-100">
+                            <span className="text-gray-600">{g.assignment_name}</span>
+                            <span className="font-bold text-gray-900">{g.score}%</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* MESSAGES TAB */}
-          {activeTab === 'messages' && (
-            <div>
-              <h2 className="text-2xl font-bold mb-1 text-white">Campus Inbox & Messaging</h2>
-              <p className="text-gray-400 text-sm mb-6">Communicate securely with peers and faculty members.</p>
+        {/* DETENTIONS TAB */}
+        {activeTab === 'detentions' && (
+          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+            <h1 className="text-xl font-bold text-gray-900 mb-1">Disciplinary Record</h1>
+            <p className="text-xs text-gray-500 mb-6">Active detentions and infractions registered on your account.</p>
 
-              {/* Compose box */}
-              <form onSubmit={handleSendMessage} className="bg-[#0d1117] p-5 rounded-xl border border-gray-800 shadow-sm mb-8 flex flex-col gap-4">
-                <h3 className="font-semibold text-white text-sm">New Message</h3>
-                {sendSuccess && <p className="text-xs bg-emerald-950/60 border border-emerald-800 text-emerald-400 p-2.5 rounded-lg">{sendSuccess}</p>}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input 
-                    type="text" 
-                    placeholder="Recipient Roblox Username" 
-                    value={recipient} 
-                    onChange={e => setRecipient(e.target.value)}
-                    required
-                    className="bg-[#161b22] border border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 p-2.5 rounded-lg text-sm text-white outline-none transition"
-                  />
-                  <input 
-                    type="text" 
-                    placeholder="Subject Title" 
-                    value={msgTitle} 
-                    onChange={e => setMsgTitle(e.target.value)}
-                    required
-                    className="bg-[#161b22] border border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 p-2.5 rounded-lg text-sm text-white outline-none transition"
-                  />
-                </div>
-                <textarea 
-                  placeholder="Type your message here..." 
-                  value={msgBody} 
-                  onChange={e => setMsgBody(e.target.value)}
+            {detentions.length === 0 ? (
+              <div className="bg-gray-50 p-8 rounded border border-gray-200 text-center text-xs text-gray-500">
+                No active detentions found on record.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {detentions.map((d, idx) => (
+                  <div key={idx} className="bg-red-50/50 p-4 rounded border border-red-200 flex flex-col gap-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-red-700 font-bold text-xs uppercase tracking-wider">Detention Notice</span>
+                      <span className="text-xs text-gray-400">{new Date(d.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <p className="text-xs text-gray-800 mt-1"><strong>Reason:</strong> {d.reason}</p>
+                    <p className="text-xs text-gray-500">Issued by: <span className="font-medium text-gray-700">{d.issued_by}</span></p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* MESSAGES TAB */}
+        {activeTab === 'messages' && (
+          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+            <h1 className="text-xl font-bold text-gray-900 mb-1">Campus Inbox</h1>
+            <p className="text-xs text-gray-500 mb-6">Direct communication channel with staff and peers.</p>
+
+            <form onSubmit={handleSendMessage} className="bg-gray-50 p-4 rounded border border-gray-200 mb-6 flex flex-col gap-3">
+              <h3 className="font-bold text-xs uppercase text-gray-600 tracking-wider">Send Message</h3>
+              {sendSuccess && <p className="text-xs bg-emerald-50 text-emerald-700 p-2 rounded border border-emerald-200">{sendSuccess}</p>}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input 
+                  type="text" 
+                  placeholder="Recipient Roblox Username" 
+                  value={recipient} 
+                  onChange={e => setRecipient(e.target.value)}
                   required
-                  rows={3}
-                  className="bg-[#161b22] border border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 p-2.5 rounded-lg text-sm text-white outline-none transition resize-none"
+                  className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
                 />
-                <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition shadow-sm w-fit">
-                  Send Message
+                <input 
+                  type="text" 
+                  placeholder="Title" 
+                  value={msgTitle} 
+                  onChange={e => setMsgTitle(e.target.value)}
+                  required
+                  className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
+                />
+              </div>
+              <textarea 
+                placeholder="Message body..." 
+                value={msgBody} 
+                onChange={e => setMsgBody(e.target.value)}
+                required
+                rows={3}
+                className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500 resize-none"
+              />
+              <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-4 rounded text-xs transition w-fit">
+                Submit Message
+              </button>
+            </form>
+
+            <h3 className="font-bold text-xs uppercase text-gray-600 tracking-wider mb-3">Received Messages</h3>
+            {messages.length === 0 ? (
+              <p className="text-xs text-gray-400 italic">No messages found in your inbox.</p>
+            ) : (
+              <div className="space-y-2">
+                {messages.map((m, idx) => (
+                  <div key={idx} className="bg-gray-50 p-3 rounded border border-gray-200 flex flex-col gap-1">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-bold text-xs text-gray-900">{m.title}</h4>
+                      <span className="text-[10px] text-gray-400">{new Date(m.created_at).toLocaleString()}</span>
+                    </div>
+                    <p className="text-xs text-gray-600">{m.body}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* STAFF ADMIN TAB */}
+        {activeTab === 'admin' && isStaffOrAdmin && (
+          <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+            <h1 className="text-xl font-bold text-gray-900 mb-1">Staff Management Panel</h1>
+            <p className="text-xs text-gray-500 mb-6">Issue detentions and input assignment marks for registered students.</p>
+
+            {adminMessage && (
+              <div className="bg-amber-50 border border-amber-200 p-3 rounded text-xs text-amber-800 mb-6">
+                {adminMessage}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Issue Detention */}
+              <form onSubmit={handleIssueDetention} className="bg-gray-50 p-4 rounded border border-gray-200 flex flex-col gap-3">
+                <h3 className="font-bold text-xs uppercase text-gray-600 tracking-wider">Issue Detention</h3>
+                <input 
+                  type="text" 
+                  placeholder="Student Roblox Username" 
+                  value={studentUsername}
+                  onChange={e => setStudentUsername(e.target.value)}
+                  required
+                  className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
+                />
+                <input 
+                  type="text" 
+                  placeholder="Reason" 
+                  value={detentionReason}
+                  onChange={e => setDetentionReason(e.target.value)}
+                  required
+                  className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
+                />
+                <button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-1.5 px-4 rounded text-xs transition w-fit">
+                  Issue Notice
                 </button>
               </form>
 
-              {/* Inbox list */}
-              <h3 className="font-semibold text-base text-white mb-4">Received Messages</h3>
-              {messages.length === 0 ? (
-                <p className="text-gray-500 text-sm italic">Your inbox is empty.</p>
-              ) : (
-                <div className="space-y-3">
-                  {messages.map((m, idx) => (
-                    <div key={idx} className="bg-[#0d1117] p-4 rounded-xl border border-gray-800 shadow-sm flex flex-col gap-1">
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-semibold text-white text-sm">{m.title}</h4>
-                        <span className="text-xs text-gray-500">{new Date(m.created_at).toLocaleString()}</span>
-                      </div>
-                      <p className="text-sm text-gray-300 mt-1">{m.body}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {/* Post Grade */}
+              <form onSubmit={handlePostGrade} className="bg-gray-50 p-4 rounded border border-gray-200 flex flex-col gap-3">
+                <h3 className="font-bold text-xs uppercase text-gray-600 tracking-wider">Input Assignment Score</h3>
+                <input 
+                  type="text" 
+                  placeholder="Student Roblox Username" 
+                  value={studentUsername}
+                  onChange={e => setStudentUsername(e.target.value)}
+                  required
+                  className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
+                />
+                <select 
+                  value={gradeSubject} 
+                  onChange={e => setGradeSubject(e.target.value)}
+                  className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500">
+                  {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <input 
+                  type="text" 
+                  placeholder="Assignment Name" 
+                  value={assignmentName}
+                  onChange={e => setAssignmentName(e.target.value)}
+                  required
+                  className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
+                />
+                <input 
+                  type="number" 
+                  placeholder="Score (0-100)" 
+                  value={scoreValue}
+                  onChange={e => setScoreValue(e.target.value)}
+                  required
+                  className="bg-white border border-gray-300 p-2 rounded text-xs text-gray-800 outline-none focus:border-blue-500"
+                />
+                <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-4 rounded text-xs transition w-fit">
+                  Submit Grade
+                </button>
+              </form>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* STAFF ADMIN PANEL */}
-          {activeTab === 'admin' && isStaffOrAdmin && (
-            <div>
-              <h2 className="text-2xl font-bold mb-1 text-amber-400">Staff Administration Panel</h2>
-              <p className="text-gray-400 text-sm mb-6">Manage student discipline records and input course grades.</p>
-
-              {adminMessage && (
-                <div className="bg-[#0d1117] border border-amber-500/40 p-3 rounded-lg mb-6 text-sm text-amber-300 shadow-sm">
-                  {adminMessage}
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Issue Detention Form */}
-                <form onSubmit={handleIssueDetention} className="bg-[#0d1117] p-5 rounded-xl border border-gray-800 shadow-sm flex flex-col gap-3">
-                  <h3 className="font-semibold text-white text-sm">Issue Detention</h3>
-                  <input 
-                    type="text" 
-                    placeholder="Student Roblox Username" 
-                    value={studentUsername}
-                    onChange={e => setStudentUsername(e.target.value)}
-                    required
-                    className="bg-[#161b22] border border-gray-700 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 p-2.5 rounded-lg text-sm text-white outline-none transition"
-                  />
-                  <input 
-                    type="text" 
-                    placeholder="Reason for detention" 
-                    value={detentionReason}
-                    onChange={e => setDetentionReason(e.target.value)}
-                    required
-                    className="bg-[#161b22] border border-gray-700 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 p-2.5 rounded-lg text-sm text-white outline-none transition"
-                  />
-                  <button type="submit" className="bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition mt-2 shadow-sm w-fit">
-                    Issue Detention
-                  </button>
-                </form>
-
-                {/* Post Grade Form */}
-                <form onSubmit={handlePostGrade} className="bg-[#0d1117] p-5 rounded-xl border border-gray-800 shadow-sm flex flex-col gap-3">
-                  <h3 className="font-semibold text-white text-sm">Input Assignment Grade</h3>
-                  <input 
-                    type="text" 
-                    placeholder="Student Roblox Username" 
-                    value={studentUsername}
-                    onChange={e => setStudentUsername(e.target.value)}
-                    required
-                    className="bg-[#161b22] border border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 p-2.5 rounded-lg text-sm text-white outline-none transition"
-                  />
-                  <select 
-                    value={gradeSubject} 
-                    onChange={e => setGradeSubject(e.target.value)}
-                    className="bg-[#161b22] border border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 p-2.5 rounded-lg text-sm text-white outline-none transition">
-                    {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                  <input 
-                    type="text" 
-                    placeholder="Assignment Name (e.g., Quiz 1)" 
-                    value={assignmentName}
-                    onChange={e => setAssignmentName(e.target.value)}
-                    required
-                    className="bg-[#161b22] border border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 p-2.5 rounded-lg text-sm text-white outline-none transition"
-                  />
-                  <input 
-                    type="number" 
-                    placeholder="Score (0-100)" 
-                    value={scoreValue}
-                    onChange={e => setScoreValue(e.target.value)}
-                    required
-                    className="bg-[#161b22] border border-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 p-2.5 rounded-lg text-sm text-white outline-none transition"
-                  />
-                  <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition mt-2 shadow-sm w-fit">
-                    Post Grade
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
-
-        </main>
-      </div>
+      </main>
     </div>
   );
 }
